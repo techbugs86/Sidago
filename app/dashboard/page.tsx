@@ -44,7 +44,7 @@ function LeaderboardTable({
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
-      <div className="px-5 py-4 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
+      <div className="px-3 sm:px-5 py-3 sm:py-4 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
         <div>
           <h2 className="font-bold text-gray-800 dark:text-gray-100 text-base">{title}</h2>
           <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">{label}</p>
@@ -69,37 +69,37 @@ function LeaderboardTable({
           return (
             <div
               key={agent.recordId}
-              className={`flex items-center gap-4 px-5 py-3.5 transition-colors ${rank === 1 ? 'bg-amber-50/40 dark:bg-amber-900/10' : 'hover:bg-gray-50 dark:hover:bg-gray-700/40'}`}
+              className={`flex items-center gap-2 sm:gap-4 px-3 sm:px-5 py-2.5 sm:py-3.5 transition-colors ${rank === 1 ? 'bg-amber-50/40 dark:bg-amber-900/10' : 'hover:bg-gray-50 dark:hover:bg-gray-700/40'}`}
             >
               <div
-                className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold text-sm flex-shrink-0 ${
+                className={`w-7 h-7 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl flex items-center justify-center font-bold text-xs sm:text-sm flex-shrink-0 ${
                   rankStyle ? `${rankStyle.bg} ${rankStyle.text}` : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400'
                 }`}
               >
                 {rankStyle ? rankStyle.label : `${rank}th`}
               </div>
 
-              <div className={`w-9 h-9 rounded-full ${color.avatar} flex items-center justify-center flex-shrink-0`}>
-                <span className="text-white text-xs font-bold">{initials(agent)}</span>
+              <div className={`w-7 h-7 sm:w-9 sm:h-9 rounded-full ${color.avatar} flex items-center justify-center flex-shrink-0`}>
+                <span className="text-white text-[10px] sm:text-xs font-bold">{initials(agent)}</span>
               </div>
 
               <div className="flex-1 min-w-0">
-                <p className="font-semibold text-gray-800 dark:text-gray-100 text-sm truncate">
+                <p className="font-semibold text-gray-800 dark:text-gray-100 text-xs sm:text-sm truncate">
                   {agent.name} {agent.surname}
                 </p>
-                <p className="text-xs text-gray-400 dark:text-gray-500 truncate">{agent.brand}</p>
+                <p className="text-[10px] sm:text-xs text-gray-400 dark:text-gray-500 truncate">{agent.brand}</p>
               </div>
 
               {isWinner && (
-                <span className="flex items-center gap-1 px-2 py-0.5 bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300 text-xs font-semibold rounded-full border border-amber-200 dark:border-amber-700 whitespace-nowrap">
-                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                <span className="flex items-center gap-1 px-1.5 sm:px-2 py-0.5 bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300 text-[10px] sm:text-xs font-semibold rounded-full border border-amber-200 dark:border-amber-700 whitespace-nowrap">
+                  <svg className="w-2.5 h-2.5 sm:w-3 sm:h-3" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
                   </svg>
                   Winner
                 </span>
               )}
 
-              <div className={`px-3 py-1 rounded-lg ${color.light} ${color.text} text-sm font-bold min-w-[52px] text-center border ${color.border}`}>
+              <div className={`px-2 sm:px-3 py-1 rounded-lg ${color.light} ${color.text} text-xs sm:text-sm font-bold min-w-[40px] sm:min-w-[52px] text-center border ${color.border}`}>
                 {value}
               </div>
             </div>
@@ -176,13 +176,13 @@ function MarizStatCard({
   colorClass: string;
 }) {
   return (
-    <div className={`rounded-2xl border p-4 flex items-center gap-3 ${colorClass}`}>
-      <div className="w-10 h-10 rounded-xl bg-white/60 dark:bg-white/10 flex items-center justify-center flex-shrink-0">
+    <div className={`rounded-2xl border p-3 sm:p-4 flex items-center gap-2 sm:gap-3 ${colorClass}`}>
+      <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl bg-white/60 dark:bg-white/10 flex items-center justify-center flex-shrink-0">
         {icon}
       </div>
       <div className="min-w-0">
-        <p className="text-xs font-medium opacity-70 truncate">{label}</p>
-        <p className="text-xl font-bold truncate">{value}</p>
+        <p className="text-[10px] sm:text-xs font-medium opacity-70 truncate">{label}</p>
+        <p className="text-base sm:text-xl font-bold truncate">{value}</p>
       </div>
     </div>
   );
@@ -250,7 +250,7 @@ export default function LeaderboardPage() {
 
       {/* Page header */}
       <header className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 shadow-sm sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-6 h-14 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-7 h-7 bg-indigo-600 rounded-lg flex items-center justify-center">
               <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -267,13 +267,16 @@ export default function LeaderboardPage() {
               )}
             </div>
           </div>
-          <p className="text-xs text-gray-400 dark:text-gray-500">
+          <p className="text-xs text-gray-400 dark:text-gray-500 hidden sm:block">
             {new Date().toLocaleDateString('default', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+          </p>
+          <p className="text-xs text-gray-400 dark:text-gray-500 sm:hidden">
+            {new Date().toLocaleDateString('default', { month: 'short', day: 'numeric' })}
           </p>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-6 py-6 space-y-6">
+      <main className="max-w-7xl mx-auto px-3 sm:px-6 py-4 sm:py-6 space-y-5 sm:space-y-6">
 
         {/* Mariz's personal stats */}
         {mariz ? (
@@ -336,7 +339,7 @@ export default function LeaderboardPage() {
         )}
 
         {/* Leaderboard tables */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-5 overflow-x-auto">
           <LeaderboardTable
             title={`This Month — ${getMonthName(0)}`}
             agents={agents}
@@ -361,7 +364,7 @@ export default function LeaderboardPage() {
             <div className="h-px flex-1 bg-gray-200 dark:bg-gray-700" />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-5">
             <BarChart
               agents={agents}
               getValue={(a) => a.monthly_calls}
@@ -391,7 +394,7 @@ export default function LeaderboardPage() {
             <div className="h-px flex-1 bg-gray-200 dark:bg-gray-700" />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4">
             {agents.map((agent, idx) => {
               const color = AGENT_COLORS[idx % AGENT_COLORS.length];
               return (
@@ -416,7 +419,7 @@ export default function LeaderboardPage() {
                       )}
                     </div>
 
-                    <div className="grid grid-cols-3 gap-2">
+                    <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
                       {[
                         { label: 'Pts/Mo', value: agent.monthly_points },
                         { label: 'Calls/Mo', value: agent.monthly_calls },
@@ -425,9 +428,9 @@ export default function LeaderboardPage() {
                         { label: 'Wins', value: agent.count_wins },
                         { label: 'All Pts', value: agent.all_points },
                       ].map(({ label, value }) => (
-                        <div key={label} className={`rounded-lg ${color.light} px-2 py-1.5 text-center`}>
-                          <p className={`text-xs ${color.text} font-medium`}>{label}</p>
-                          <p className="text-sm font-bold text-gray-800 dark:text-gray-100">{value}</p>
+                        <div key={label} className={`rounded-lg ${color.light} px-1.5 sm:px-2 py-1 sm:py-1.5 text-center`}>
+                          <p className={`text-[10px] sm:text-xs ${color.text} font-medium`}>{label}</p>
+                          <p className="text-xs sm:text-sm font-bold text-gray-800 dark:text-gray-100">{value}</p>
                         </div>
                       ))}
                     </div>
