@@ -1,6 +1,6 @@
 import { Lead } from "@/types";
-import { Building2, Clock3, BriefcaseBusiness } from "lucide-react";
-import { contactTypeBadge } from "../_lib/utils";
+import { TypeBadge, TimezoneBadge } from "@/components/ui";
+import { Building2, BriefcaseBusiness } from "lucide-react";
 
 export function HeroCard({ currentLead }: { currentLead: Lead }) {
   return (
@@ -11,17 +11,8 @@ export function HeroCard({ currentLead }: { currentLead: Lead }) {
             {currentLead.lead_id}
           </h1>
           <div className="flex flex-wrap items-center gap-2">
-            <span
-              className={`rounded-full px-2.5 py-1 text-xs font-semibold ${contactTypeBadge(
-                currentLead.contact_type,
-              )}`}
-            >
-              {currentLead.contact_type}
-            </span>
-            <span className="flex items-center gap-1 rounded-full bg-sky-100 px-2.5 py-1 text-xs font-medium text-sky-700 ring-1 ring-sky-200 dark:bg-sky-900/40 dark:text-sky-300 dark:ring-sky-800">
-              <Clock3 className="h-3.5 w-3.5" />
-              {currentLead.timezone}
-            </span>
+            <TypeBadge value={currentLead.contact_type} kind="contact" />
+            <TimezoneBadge timezone={currentLead.timezone} />
           </div>
         </div>
 

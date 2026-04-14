@@ -4,6 +4,7 @@ import { SidebarItem } from "./SidebarItem";
 import { ShieldCheck, UserCog, X } from "lucide-react";
 import { NavigationItem } from "@/lib/navigation";
 import { useAuth } from "@/providers/AuthProvider";
+import { usePathname } from "next/navigation";
 
 export type Props = {
   navigations: NavigationItem[];
@@ -17,6 +18,7 @@ export default function Mobilebar({
   setIsMobileOpen,
 }: Props) {
   const { user } = useAuth();
+  const pathname = usePathname();
   const roleLabel = user?.role
     ? user.role.charAt(0).toUpperCase() + user.role.slice(1)
     : "Unknown";
@@ -60,7 +62,7 @@ export default function Mobilebar({
                   key={item.href}
                   item={item}
                   isCollapsed={false}
-                  isActive={false}
+                  isActive={pathname === item.href}
                 />
               ))}
             </nav>

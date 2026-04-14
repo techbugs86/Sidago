@@ -8,8 +8,11 @@ import {
   ChevronDown,
   ChevronRight,
   Ellipsis,
+  FileDown,
+  Printer,
   GripVertical,
   Plus,
+  Search,
   Trash2,
   X,
 } from "lucide-react";
@@ -19,6 +22,7 @@ export type Column<T> = {
   key: keyof T | string;
   title: string;
   render?: (row: T) => React.ReactNode;
+  getValue?: (row: T) => React.ReactNode;
   type?: "text" | "select" | "date";
   options?: Array<{ label: string; value: string }>;
 };
@@ -62,8 +66,16 @@ type GroupNode<T> = {
   children: GroupNode<T>[] | null;
 };
 
-function getCellValue<T>(row: T, key: keyof T | string) {
-  return row[key as keyof T] as React.ReactNode;
+function getCellValue<T>(row: T, column: Column<T> | (keyof T | string)) {
+  if (typeof column === "object" && column !== null && "key" in column) {
+    if (column.getValue) {
+      return column.getValue(row);
+    }
+
+    return row[column.key as keyof T] as React.ReactNode;
+  }
+
+  return row[column as keyof T] as React.ReactNode;
 }
 
 function createFilterCondition(field = ""): FilterCondition {
@@ -92,6 +104,11 @@ export function Table<T>({
   emptyText = "No data found",
 }: Props<T>) {
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
+  const tableElementRef = useRef<HTMLTableElement | null>(null);
+  const toolbarButtonClass =
+    "flex h-9 cursor-pointer items-center justify-center rounded-xl px-3 text-sm text-slate-700 transition hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-900";
+  const toolbarIconButtonClass =
+    "flex h-9 w-9 cursor-pointer items-center justify-center rounded-xl text-slate-700 transition hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-900";
   const [groupRules, setGroupRules] = useState<GroupRule[]>([]);
   const [sortRules, setSortRules] = useState<SortRule[]>([]);
   const [showCounts, setShowCounts] = useState(true);
@@ -99,6 +116,7 @@ export function Table<T>({
     Record<string, boolean>
   >({});
   const [filterSearch, setFilterSearch] = useState("");
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const selectableColumns = useMemo(
     () =>
       columns.map((column) => ({
@@ -119,7 +137,7 @@ export function Table<T>({
       const searchMatches = !filterSearch.trim()
         ? true
         : columns.some((column) =>
-            String(getCellValue(row, column.key) ?? "")
+            String(getCellValue(row, column) ?? "")
               .toLowerCase()
               .includes(filterSearch.trim().toLowerCase()),
           );
@@ -140,7 +158,8 @@ export function Table<T>({
 
       for (const condition of activeConditions) {
         const value = String(
-          getCellValue(row, condition.field) ?? "",
+          getCellValue(row, columnMap.get(condition.field) ?? condition.field) ??
+            "",
         ).toLowerCase();
         const query = condition.value.trim().toLowerCase();
         const matchesCondition =
@@ -159,7 +178,7 @@ export function Table<T>({
 
       return result ?? true;
     });
-  }, [columns, data, filterConditions, filterSearch]);
+  }, [columnMap, columns, data, filterConditions, filterSearch]);
   const processedData = useMemo(() => {
     const activeSortRules = sortRules.filter((rule) => rule.field);
 
@@ -170,10 +189,10 @@ export function Table<T>({
     return [...filteredData].sort((left, right) => {
       for (const rule of activeSortRules) {
         const leftValue = String(
-          getCellValue(left, rule.field) ?? "",
+          getCellValue(left, columnMap.get(rule.field) ?? rule.field) ?? "",
         ).toLowerCase();
         const rightValue = String(
-          getCellValue(right, rule.field) ?? "",
+          getCellValue(right, columnMap.get(rule.field) ?? rule.field) ?? "",
         ).toLowerCase();
 
         if (leftValue === rightValue) {
@@ -186,7 +205,7 @@ export function Table<T>({
 
       return 0;
     });
-  }, [filteredData, sortRules]);
+  }, [columnMap, filteredData, sortRules]);
   const groupedData = useMemo<GroupNode<T>[] | null>(() => {
     const activeGroupRules = groupRules.filter((rule) => rule.field);
 
@@ -210,10 +229,14 @@ export function Table<T>({
 
       for (const row of rows) {
         const rawValue = getCellValue(row, groupKey);
+        const derivedColumn = columnMap.get(groupKey);
+        const resolvedValue = derivedColumn
+          ? getCellValue(row, derivedColumn)
+          : rawValue;
         const groupLabel =
-          rawValue === null || rawValue === undefined || rawValue === ""
+          resolvedValue === null || resolvedValue === undefined || resolvedValue === ""
             ? "Unknown"
-            : String(rawValue);
+            : String(resolvedValue);
         const items = grouped.get(groupLabel) ?? [];
         items.push(row);
         grouped.set(groupLabel, items);
@@ -245,7 +268,7 @@ export function Table<T>({
     };
 
     return buildGroups(processedData, 0);
-  }, [groupRules, processedData]);
+  }, [columnMap, groupRules, processedData]);
 
   const renderGroupedRows = (groups: GroupNode<T>[]): React.ReactNode =>
     groups.map((group) => (
@@ -297,7 +320,7 @@ export function Table<T>({
                     >
                       {col.render
                         ? col.render(row)
-                        : getCellValue(row, col.key)}
+                        : getCellValue(row, col)}
                     </td>
                   ))}
                 </tr>
@@ -339,6 +362,111 @@ export function Table<T>({
     }
   };
 
+  const closeSearch = () => {
+    setIsSearchOpen(false);
+    setFilterSearch("");
+  };
+
+  const handlePrintPage = () => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    window.print();
+  };
+
+  const handlePrintData = () => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const tableMarkup = tableElementRef.current?.outerHTML;
+
+    if (!tableMarkup) {
+      return;
+    }
+
+    const printWindow = window.open("", "_blank", "width=1200,height=800");
+
+    if (!printWindow) {
+      return;
+    }
+
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>${title}</title>
+          <style>
+            body { font-family: Arial, sans-serif; padding: 24px; color: #0f172a; }
+            h1 { margin-bottom: 16px; font-size: 20px; }
+            table { width: 100%; border-collapse: collapse; }
+            th, td { border: 1px solid #cbd5e1; padding: 10px; text-align: left; font-size: 12px; vertical-align: top; }
+            th { background: #f8fafc; text-transform: uppercase; }
+          </style>
+        </head>
+        <body>
+          <h1>${title}</h1>
+          ${tableMarkup}
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+    printWindow.focus();
+    printWindow.print();
+  };
+
+  const handleExportSvg = () => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const rows = processedData;
+    const headers = columns.map((column) => column.title);
+    const rowLines = rows.map((row) =>
+      columns
+        .map(
+          (column) => `${column.title}: ${String(getCellValue(row, column) ?? "")}`,
+        )
+        .join(" | "),
+    );
+    const lines = [title, headers.join(" | "), ...rowLines];
+    const lineHeight = 22;
+    const padding = 24;
+    const svgWidth = 1600;
+    const svgHeight = Math.max(160, padding * 2 + lines.length * lineHeight);
+    const escapedLines = lines.map((line) =>
+      line
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;"),
+    );
+
+    const svg = `
+      <svg xmlns="http://www.w3.org/2000/svg" width="${svgWidth}" height="${svgHeight}" viewBox="0 0 ${svgWidth} ${svgHeight}">
+        <rect width="100%" height="100%" fill="#ffffff" />
+        ${escapedLines
+          .map(
+            (line, index) => `
+              <text x="${padding}" y="${padding + (index + 1) * lineHeight}" font-family="Arial, sans-serif" font-size="${index === 0 ? 18 : 12}" fill="#0f172a">
+                ${line}
+              </text>`,
+          )
+          .join("")}
+      </svg>
+    `;
+
+    const blob = new Blob([svg], { type: "image/svg+xml;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${title.toLowerCase().replace(/\s+/g, "-")}.svg`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  };
+
   // 🔹 Loading
   if (isLoading) {
     return (
@@ -370,9 +498,9 @@ export function Table<T>({
             {description}
           </p>
         </div>
-        <div className="flex items-center justify-end">
+        <div className="flex items-center justify-end gap-2">
           <Popover className="relative">
-            <PopoverButton className="outline-0 ring-0 cursor-pointer rounded-xl px-2 py-0.5 hover:bg-slate-100 dark:hover:bg-slate-900">
+            <PopoverButton className={toolbarButtonClass}>
               Group
               {groupRules.length > 0 && (
                 <span className="ml-1 inline-flex min-w-5 items-center justify-center rounded-md bg-slate-800 px-1.5 py-0.5 text-[11px] font-semibold text-white">
@@ -589,7 +717,7 @@ export function Table<T>({
             </PopoverPanel>
           </Popover>
           <Popover className="relative">
-            <PopoverButton className="outline-0 ring-0 cursor-pointer rounded-xl px-2 py-0.5 hover:bg-slate-100 dark:hover:bg-slate-900">
+            <PopoverButton className={toolbarButtonClass}>
               Filter
               {(filterSearch.trim() ||
                 filterConditions.some((condition) =>
@@ -800,7 +928,7 @@ export function Table<T>({
             </PopoverPanel>
           </Popover>
           <Popover className="relative">
-            <PopoverButton className="outline-0 ring-0 cursor-pointer rounded-xl px-2 py-0.5 hover:bg-slate-100 dark:hover:bg-slate-900">
+            <PopoverButton className={toolbarButtonClass}>
               Sort
               {sortRules.length > 0 && (
                 <span className="ml-1 inline-flex min-w-5 items-center justify-center rounded-md bg-slate-800 px-1.5 py-0.5 text-[11px] font-semibold text-white">
@@ -871,7 +999,7 @@ export function Table<T>({
                             ),
                           )
                         }
-                        className="flex items-center cursor-pointer justify-center h-9 w-9 rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:text-slate-500 dark:hover:bg-slate-900 dark:hover:text-slate-200"
+                        className="flex items-center cursor-pointer justify-center h-9 w-9 rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:text-slate-500 dark:hover:bg-slate-900 dark:hover:text-slate-200 cursor-pointer"
                         aria-label="Remove sort"
                       >
                         <X size={16} />
@@ -965,6 +1093,73 @@ export function Table<T>({
               </div>
             </PopoverPanel>
           </Popover>
+          {isSearchOpen ? (
+            <div className="relative w-72">
+              <Search
+                size={15}
+                className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500"
+              />
+              <input
+                type="text"
+                value={filterSearch}
+                onChange={(event) => setFilterSearch(event.target.value)}
+                placeholder="Search in table"
+                className="h-9 w-full rounded-xl border border-slate-300 bg-white py-2 pl-9 pr-10 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-sky-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500"
+              />
+              <button
+                type="button"
+                onClick={closeSearch}
+                className="absolute right-2 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-md text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:text-slate-500 dark:hover:bg-slate-800 dark:hover:text-slate-200 cursor-pointer"
+                aria-label="Close search"
+              >
+                <X size={14} />
+              </button>
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setIsSearchOpen(true)}
+              className={toolbarIconButtonClass}
+              aria-label="Open search"
+            >
+              <Search size={15} />
+            </button>
+          )}
+          <Popover className="relative">
+            <PopoverButton className={toolbarIconButtonClass}>
+              <Ellipsis size={16} />
+            </PopoverButton>
+
+            <PopoverPanel
+              anchor="bottom end"
+              className="w-56 border border-slate-200 shadow-2xl bg-white rounded-xl p-2 backdrop-blur-md transition-colors dark:border-slate-600 dark:bg-slate-950/70 flex flex-col overflow-hidden"
+            >
+              <button
+                type="button"
+                onClick={handlePrintPage}
+                className="flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-slate-700 transition hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-900"
+              >
+                <Printer size={16} />
+                <span>Print the page</span>
+              </button>
+              <button
+                type="button"
+                onClick={handlePrintData}
+                className="flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-slate-700 transition hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-900"
+              >
+                <Printer size={16} />
+                <span>Print the data</span>
+              </button>
+              <button
+                type="button"
+                onClick={handleExportSvg}
+                className="flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-slate-700 transition hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-900"
+              >
+                <FileDown size={16} />
+                <span>Export the data as SVG</span>
+              </button>
+            </PopoverPanel>
+          </Popover>
         </div>
       </div>
       <div
@@ -974,7 +1169,7 @@ export function Table<T>({
         className="overflow-x-auto overflow-y-visible px-4 outline-none focus-visible:ring-2 focus-visible:ring-sky-500/60"
         aria-label="Scrollable table"
       >
-        <table className="min-w-240 w-full">
+        <table ref={tableElementRef} className="min-w-240 w-full">
           {/* Header */}
           <thead className="text-xs uppercase text-gray-500 dark:text-white tracking-wide border-b border-slate-200/80 transition-colors dark:border-slate-600">
             <tr>

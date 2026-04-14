@@ -12,6 +12,7 @@ import { Button } from "@/components/ui";
 import { NavigationItem } from "@/lib/navigation";
 import { useAuth } from "@/providers/AuthProvider";
 import clsx from "clsx";
+import { usePathname } from "next/navigation";
 
 export type Props = {
   isCollapsed: boolean;
@@ -25,6 +26,7 @@ export const Sidebar = ({
   navigations,
 }: Props) => {
   const { user } = useAuth();
+  const pathname = usePathname();
   const roleLabel = user?.role
     ? user.role.charAt(0).toUpperCase() + user.role.slice(1)
     : "Unknown";
@@ -79,7 +81,7 @@ export const Sidebar = ({
             key={item.href}
             item={item}
             isCollapsed={isCollapsed}
-            isActive={false}
+            isActive={pathname === item.href}
           />
         ))}
       </nav>

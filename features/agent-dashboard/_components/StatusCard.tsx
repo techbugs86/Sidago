@@ -1,4 +1,5 @@
 import { Agent } from "@/types";
+import { CompanySymbolBadge } from "@/components/ui";
 import { AgentIdentity } from "./AgentIdentity";
 import { MetricTile } from "./MetricTile";
 import { Panel } from "./Panel";
@@ -14,7 +15,6 @@ interface StatusCardProps {
 export default function StatusCard({ agent, index }: StatusCardProps) {
   const stats = getAgentDetailStats(agent);
   const color = getAgentColor(index);
-  console.log(color);
 
   return (
     <Panel
@@ -25,10 +25,10 @@ export default function StatusCard({ agent, index }: StatusCardProps) {
         <AgentIdentity
           agent={agent}
           index={index}
-          meta={agent.brand}
+          meta={<CompanySymbolBadge symbol={agent.brand} index={index} />}
           avatarSquare
           nameClassName="text-xl font-bold text-gray-900 dark:text-gray-100"
-          metaClassName="text-sm text-gray-500 dark:text-gray-400"
+          metaClassName="text-sm"
           aside={agent.monthly_winner ? <WinnerBadge /> : undefined}
         />
 

@@ -1,4 +1,9 @@
-export { StatusBadge } from "./Badge";
+export {
+  CompanySymbolBadge,
+  StatusBadge,
+  TimezoneBadge,
+  TypeBadge,
+} from "./Badge";
 export { Button } from "./Button";
 export { Card, CardContent } from "./Card";
 export { Confirmation } from "./Confirmation";
