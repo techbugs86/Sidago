@@ -17,10 +17,7 @@ type RecentInterestTableProps = {
   title: string;
 };
 
-export function RecentInterestTable({
-  data,
-  title,
-}: RecentInterestTableProps) {
+export function RecentInterestTable({ data, title }: RecentInterestTableProps) {
   const columns = useMemo<Column<RecentInterestRow>[]>(
     () => [
       {
@@ -32,7 +29,10 @@ export function RecentInterestTable({
         title: "Lead",
         key: "lead",
         type: "select",
-        options: recentInterestLeadOptions.map((value) => ({ label: value, value })),
+        options: recentInterestLeadOptions.map((value) => ({
+          label: value,
+          value,
+        })),
       },
       {
         title: "Campaign Type",

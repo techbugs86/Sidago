@@ -70,6 +70,20 @@ export const closedContactsData: ClosedContactRow[] = [
     bentonToBeCalledBy: "Tanvir",
     lastActionDate: "2026-04-17 02:25 PM",
   },
+  {
+    lead: "Interested",
+    companyName: "Crestline Ops",
+    fullName: "Marcus Bell",
+    phone: "+1 312 555 0194",
+    email: "marcus@crestlineops.com",
+    timezone: "CST",
+    contactType: "Left Message",
+    leadType: "Warm",
+    bentonLeadType: "General",
+    svgToBeCalledBy: "Asha",
+    bentonToBeCalledBy: "Tanvir",
+    lastActionDate: "2026-04-16 01:40 PM",
+  },
 ];
 
 export const leadOptions = [
@@ -134,5 +148,7 @@ export function getCompanySymbol(companyName: string): string {
 }
 
 export function getCompanySymbolOptions(rows: ClosedContactRow[]): string[] {
-  return Array.from(new Set(rows.map((row) => getCompanySymbol(row.companyName))));
+  return Array.from(
+    new Set(rows.map((row) => getCompanySymbol(row.companyName))),
+  );
 }

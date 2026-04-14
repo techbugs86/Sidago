@@ -1,10 +1,6 @@
 "use client";
 
-import {
-  CompanySymbolBadge,
-  TimezoneBadge,
-  TypeBadge,
-} from "@/components/ui";
+import { CompanySymbolBadge, TimezoneBadge, TypeBadge } from "@/components/ui";
 import { Table, type Column } from "@/components/ui/Table";
 import React, { useMemo } from "react";
 import { UnassignedHotLeadsEmptyState } from "./UnassignedHotLeadsEmptyState";
@@ -215,9 +211,7 @@ export function UnassignedHotLeadsTable({
         columns={columns}
         title={title}
         emptyState={
-          <UnassignedHotLeadsEmptyState
-            subtitle="Your team has already picked up every hot lead in this queue. When new unassigned leads arrive, they will appear here automatically."
-          />
+          <UnassignedHotLeadsEmptyState subtitle="Your team has already picked up every hot lead in this queue. When new unassigned leads arrive, they will appear here automatically." />
         }
       />
     </div>

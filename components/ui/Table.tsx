@@ -6,6 +6,7 @@ import { Select } from "./Select";
 import {
   Check,
   ChevronDown,
+  ChevronLeft,
   ChevronRight,
   Ellipsis,
   FileDown,
@@ -134,6 +135,11 @@ export function Table<T>({
   const [filterConditions, setFilterConditions] = useState<FilterCondition[]>(
     [],
   );
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [pageState, setPageState] = useState({
+    page: 1,
+    contextKey: "",
+  });
   const filteredData = useMemo(() => {
     return data.filter((row) => {
       const searchMatches = !filterSearch.trim()
@@ -160,8 +166,10 @@ export function Table<T>({
 
       for (const condition of activeConditions) {
         const value = String(
-          getCellValue(row, columnMap.get(condition.field) ?? condition.field) ??
-            "",
+          getCellValue(
+            row,
+            columnMap.get(condition.field) ?? condition.field,
+          ) ?? "",
         ).toLowerCase();
         const query = condition.value.trim().toLowerCase();
         const matchesCondition =
@@ -236,7 +244,9 @@ export function Table<T>({
           ? getCellValue(row, derivedColumn)
           : rawValue;
         const groupLabel =
-          resolvedValue === null || resolvedValue === undefined || resolvedValue === ""
+          resolvedValue === null ||
+          resolvedValue === undefined ||
+          resolvedValue === ""
             ? "Unknown"
             : String(resolvedValue);
         const items = grouped.get(groupLabel) ?? [];
@@ -271,6 +281,55 @@ export function Table<T>({
 
     return buildGroups(processedData, 0);
   }, [columnMap, groupRules, processedData]);
+  const paginationContextKey = useMemo(
+    () =>
+      JSON.stringify({
+        filterSearch,
+        filterConditions,
+        sortRules,
+        groupRules,
+        rowsPerPage,
+        dataLength: data.length,
+        columnKeys: columns.map((column) => String(column.key)),
+      }),
+    [
+      columns,
+      data.length,
+      filterConditions,
+      filterSearch,
+      groupRules,
+      rowsPerPage,
+      sortRules,
+    ],
+  );
+  const totalPages = Math.max(1, Math.ceil(processedData.length / rowsPerPage));
+  const currentPage =
+    pageState.contextKey === paginationContextKey ? pageState.page : 1;
+  const safeCurrentPage = Math.min(currentPage, totalPages);
+  const pageNumbers = useMemo(() => {
+    const pages = new Set<number>([
+      1,
+      totalPages,
+      safeCurrentPage - 1,
+      safeCurrentPage,
+      safeCurrentPage + 1,
+    ]);
+
+    return Array.from(pages)
+      .filter((page) => page >= 1 && page <= totalPages)
+      .sort((left, right) => left - right);
+  }, [safeCurrentPage, totalPages]);
+  const paginatedData = useMemo(() => {
+    const startIndex = (safeCurrentPage - 1) * rowsPerPage;
+    return processedData.slice(startIndex, startIndex + rowsPerPage);
+  }, [processedData, rowsPerPage, safeCurrentPage]);
+  const paginationStart = processedData.length
+    ? (safeCurrentPage - 1) * rowsPerPage + 1
+    : 0;
+  const paginationEnd = Math.min(
+    safeCurrentPage * rowsPerPage,
+    processedData.length,
+  );
 
   const renderGroupedRows = (groups: GroupNode<T>[]): React.ReactNode =>
     groups.map((group) => (
@@ -320,9 +379,7 @@ export function Table<T>({
                       key={col.title}
                       className="px-6 py-4 text-sm text-gray-700"
                     >
-                      {col.render
-                        ? col.render(row)
-                        : getCellValue(row, col)}
+                      {col.render ? col.render(row) : getCellValue(row, col)}
                     </td>
                   ))}
                 </tr>
@@ -427,7 +484,8 @@ export function Table<T>({
     const rowLines = rows.map((row) =>
       columns
         .map(
-          (column) => `${column.title}: ${String(getCellValue(row, column) ?? "")}`,
+          (column) =>
+            `${column.title}: ${String(getCellValue(row, column) ?? "")}`,
         )
         .join(" | "),
     );
@@ -1192,9 +1250,9 @@ export function Table<T>({
           <tbody className="divide-y divide-slate-200/80 dark:divide-slate-600">
             {groupedData
               ? renderGroupedRows(groupedData)
-              : processedData.map((row, i) => (
+              : paginatedData.map((row, i) => (
                   <tr
-                    key={i}
+                    key={`${safeCurrentPage}-${i}`}
                     className="hover:bg-indigo-50/40 dark:hover:bg-slate-100 transition-colors duration-150"
                   >
                     {columns.map((col) => (
@@ -1212,6 +1270,117 @@ export function Table<T>({
           </tbody>
         </table>
       </div>
+      {!groupedData && processedData.length > 0 && (
+        <div className="mt-4 px-4 pb-2">
+          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+            <div className="grid grid-cols-2 items-center gap-3 sm:flex sm:flex-row sm:items-center sm:gap-6">
+              <p className="text-xs font-medium text-slate-500 dark:text-slate-400 sm:text-sm">
+                Showing {paginationStart} to {paginationEnd} of{" "}
+                {processedData.length} entries
+              </p>
+              <div className="flex items-center justify-end gap-3 sm:justify-start">
+                <span className="text-xs font-medium text-slate-500 dark:text-slate-400 sm:text-sm">
+                  Rows per page
+                </span>
+                <Popover className="relative">
+                  <PopoverButton className="flex h-6 min-w-6 cursor-pointer items-center justify-between gap-2 rounded border border-slate-200 focus:outline-0 focus:ring-0 bg-white px-3 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-slate-600 dark:hover:bg-slate-950">
+                    <span>{rowsPerPage}</span>
+                    <ChevronDown size={14} />
+                  </PopoverButton>
+                  <PopoverPanel
+                    anchor="bottom start"
+                    className="mt-2 flex w-24 flex-col overflow-hidden rounded border border-slate-200 bg-white p-1 shadow-xl dark:border-slate-700 dark:bg-slate-950"
+                  >
+                    {["10", "20", "30", "50", "100", "500"].map((value) => (
+                      <button
+                        key={value}
+                        type="button"
+                        onClick={() => setRowsPerPage(Number(value))}
+                        className={clsx(
+                          "cursor-pointer rounded-lg px-3 py-2 text-left text-sm font-medium transition",
+                          rowsPerPage === Number(value)
+                            ? "bg-blue-600 text-white"
+                            : "text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-900 dark:hover:text-white",
+                        )}
+                      >
+                        {value}
+                      </button>
+                    ))}
+                  </PopoverPanel>
+                </Popover>
+              </div>
+            </div>
+            <div className="flex items-center justify-center gap-2 sm:justify-end">
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() =>
+                    setPageState({
+                      page: Math.max(1, safeCurrentPage - 1),
+                      contextKey: paginationContextKey,
+                    })
+                  }
+                  disabled={safeCurrentPage === 1}
+                  className="flex h-6 w-6 cursor-pointer items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 transition hover:border-slate-300 hover:text-slate-800 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400 dark:hover:border-slate-600 dark:hover:text-white"
+                  aria-label="Previous page"
+                >
+                  <ChevronLeft size={16} />
+                </button>
+                <div className="flex items-center gap-1">
+                  {pageNumbers.map((page, index) => {
+                    const previousPage = pageNumbers[index - 1];
+                    const showGap = previousPage && page - previousPage > 1;
+
+                    return (
+                      <React.Fragment key={page}>
+                        {showGap && (
+                          <span className="px-2 text-sm font-medium text-slate-400">
+                            ...
+                          </span>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setPageState({
+                              page,
+                              contextKey: paginationContextKey,
+                            })
+                          }
+                          className={clsx(
+                            "flex h-6 min-w-6 cursor-pointer items-center justify-center rounded text-sm font-semibold transition",
+                            page === safeCurrentPage
+                              ? "bg-blue-600 text-white shadow-sm hover:bg-blue-500 dark:bg-blue-600 dark:text-white"
+                              : "text-slate-500 hover:bg-slate-100 hover:text-slate-800 dark:text-slate-400 dark:hover:bg-slate-900 dark:hover:text-white",
+                          )}
+                        >
+                          {page}
+                        </button>
+                      </React.Fragment>
+                    );
+                  })}
+                </div>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setPageState({
+                      page: Math.min(totalPages, safeCurrentPage + 1),
+                      contextKey: paginationContextKey,
+                    })
+                  }
+                  disabled={safeCurrentPage === totalPages}
+                  className="flex h-6 w-6 cursor-pointer items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 transition hover:border-slate-300 hover:text-slate-800 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-400 dark:hover:border-slate-600 dark:hover:text-white"
+                  aria-label="Next page"
+                >
+                  <ChevronRight size={16} />
+                </button>
+              </div>
+              <div className="hidden text-sm font-medium text-slate-500 dark:text-slate-400 md:block">
+                Page {safeCurrentPage} of {totalPages}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

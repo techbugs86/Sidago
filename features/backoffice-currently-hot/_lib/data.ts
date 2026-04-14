@@ -110,6 +110,28 @@ export const svgCurrentlyHotLeadsData: LeadRow[] = [
     rm95DateBecomeHot: "2026-04-06",
     lastActionDate: "2026-04-09 12:10 PM",
   },
+  {
+    lead: "Follow Up",
+    companyName: "Crestline Ops",
+    fullName: "Marcus Bell",
+    phone: "+1 312 555 0194",
+    email: "marcus@crestlineops.com",
+    timezone: "CST",
+    contactType: "Left Message",
+    svgLeadType: "Warm",
+    svgToBeCalledBy: "Asha",
+    svgLastCallDate: "2026-04-16",
+    bentonLeadType: "General",
+    bentonToBeCalledBy: "Tanvir",
+    bentonLastCallDate: "2026-04-15",
+    rm95LeadType: "Warm",
+    rm95ToBeCalledBy: "Hasib",
+    rm95LastCallDate: "2026-04-14",
+    svgDateBecomeHot: "2026-04-15",
+    bentonDateBecomeHot: "2026-04-14",
+    rm95DateBecomeHot: "2026-04-13",
+    lastActionDate: "2026-04-16 01:40 PM",
+  },
 ];
 
 export const bentonCurrentlyHotLeadsData: LeadRow[] = [
@@ -200,6 +222,28 @@ export const bentonCurrentlyHotLeadsData: LeadRow[] = [
     bentonDateBecomeHot: "2026-04-16",
     rm95DateBecomeHot: "2026-04-14",
     lastActionDate: "2026-04-17 02:25 PM",
+  },
+  {
+    lead: "Interested",
+    companyName: "Lumen Works",
+    fullName: "Daniel Ross",
+    phone: "+1 469 555 0141",
+    email: "daniel@lumenworks.com",
+    timezone: "CST",
+    contactType: "Interested",
+    svgLeadType: "Referral",
+    svgToBeCalledBy: "Rafi",
+    svgLastCallDate: "2026-04-18",
+    bentonLeadType: "Warm",
+    bentonToBeCalledBy: "Maliha",
+    bentonLastCallDate: "2026-04-17",
+    rm95LeadType: "General",
+    rm95ToBeCalledBy: "Nafis",
+    rm95LastCallDate: "2026-04-15",
+    svgDateBecomeHot: "2026-04-17",
+    bentonDateBecomeHot: "2026-04-16",
+    rm95DateBecomeHot: "2026-04-14",
+    lastActionDate: "2026-04-18 10:25 AM",
   },
 ];
 
@@ -292,6 +336,28 @@ export const rm95CurrentlyHotLeadsData: LeadRow[] = [
     rm95DateBecomeHot: "2026-04-10",
     lastActionDate: "2026-04-12 10:05 AM",
   },
+  {
+    lead: "Re-Engaged",
+    companyName: "Metro Vertex",
+    fullName: "Elena Cruz",
+    phone: "+1 305 555 0162",
+    email: "elena@metrovertex.com",
+    timezone: "EST",
+    contactType: "Interested",
+    svgLeadType: "General",
+    svgToBeCalledBy: "Rafi",
+    svgLastCallDate: "2026-04-14",
+    bentonLeadType: "Warm",
+    bentonToBeCalledBy: "Maliha",
+    bentonLastCallDate: "2026-04-13",
+    rm95LeadType: "Hot",
+    rm95ToBeCalledBy: "Tanvir",
+    rm95LastCallDate: "2026-04-15",
+    svgDateBecomeHot: "2026-04-12",
+    bentonDateBecomeHot: "2026-04-11",
+    rm95DateBecomeHot: "2026-04-13",
+    lastActionDate: "2026-04-15 04:10 PM",
+  },
 ];
 
 export const currentlyHotLeadsDataByCompany = {
@@ -363,5 +429,7 @@ export function getCompanySymbol(companyName: string): string {
 }
 
 export function getCompanySymbolOptions(rows: LeadRow[]): string[] {
-  return Array.from(new Set(rows.map((row) => getCompanySymbol(row.companyName))));
+  return Array.from(
+    new Set(rows.map((row) => getCompanySymbol(row.companyName))),
+  );
 }

@@ -88,5 +88,7 @@ export function getCompanySymbol(companyName: string): string {
 export function getCompanySymbolOptions(
   rows: UnassignedHotLeadRow[],
 ): string[] {
-  return Array.from(new Set(rows.map((row) => getCompanySymbol(row.companyName))));
+  return Array.from(
+    new Set(rows.map((row) => getCompanySymbol(row.companyName))),
+  );
 }

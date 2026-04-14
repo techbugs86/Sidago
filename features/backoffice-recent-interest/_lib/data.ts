@@ -107,6 +107,19 @@ export const svgRecentInterestData: RecentInterestRow[] = [
     notes: "Referral source confirmed; waiting on warehouse volume estimate.",
     phone: "+1 206 555 0107",
   },
+  {
+    followUpDateCleaned: "2026-04-22",
+    lead: "Hot Lead",
+    campaignType: "Outbound",
+    contactPerson: "Marcus Bell",
+    companyName: "Crestline Ops",
+    email: "marcus@crestlineops.com",
+    assignedTo: "Asha",
+    callResult: "Interested",
+    leadType: "Warm",
+    notes: "Interested after outbound demo summary and requested a callback.",
+    phone: "+1 312 555 0194",
+  },
 ];
 
 export const rm95RecentInterestData: RecentInterestRow[] = [
@@ -162,6 +175,19 @@ export const rm95RecentInterestData: RecentInterestRow[] = [
     notes: "Reopened conversation after seeing updated pricing offer.",
     phone: "+81 3 5550 0120",
   },
+  {
+    followUpDateCleaned: "2026-04-20",
+    lead: "Re-Engaged",
+    campaignType: "Referral",
+    contactPerson: "Elena Cruz",
+    companyName: "Metro Vertex",
+    email: "elena@metrovertex.com",
+    assignedTo: "Rafi",
+    callResult: "Meeting Booked",
+    leadType: "Hot",
+    notes: "Referral call converted into a booked follow-up with stakeholders.",
+    phone: "+1 305 555 0162",
+  },
 ];
 
 export const bentonRecentInterestData: RecentInterestRow[] = [
@@ -216,5 +242,18 @@ export const bentonRecentInterestData: RecentInterestRow[] = [
     leadType: "Hot",
     notes: "Booked next-step demo with decision-makers from marketing.",
     phone: "+44 20 7946 0132",
+  },
+  {
+    followUpDateCleaned: "2026-04-22",
+    lead: "Interested",
+    campaignType: "Outbound",
+    contactPerson: "Daniel Ross",
+    companyName: "Lumen Works",
+    email: "daniel@lumenworks.com",
+    assignedTo: "Nafis",
+    callResult: "Left Message",
+    leadType: "General",
+    notes: "Reached voicemail and left a concise recap of the offer.",
+    phone: "+1 469 555 0141",
   },
 ];

@@ -1,10 +1,6 @@
 "use client";
 
-import {
-  CompanySymbolBadge,
-  TimezoneBadge,
-  TypeBadge,
-} from "@/components/ui";
+import { CompanySymbolBadge, TimezoneBadge, TypeBadge } from "@/components/ui";
 import { Table, type Column } from "@/components/ui/Table";
 import React, { useMemo } from "react";
 import {
@@ -40,7 +36,9 @@ export function ClosedContactsTable() {
         render: (row) => (
           <CompanySymbolBadge
             symbol={getCompanySymbol(row.companyName)}
-            index={closedContactsData.findIndex((item) => item.email === row.email)}
+            index={closedContactsData.findIndex(
+              (item) => item.email === row.email,
+            )}
           />
         ),
       },
@@ -56,7 +54,9 @@ export function ClosedContactsTable() {
         render: (row) => (
           <TimezoneBadge
             timezone={row.timezone}
-            index={closedContactsData.findIndex((item) => item.email === row.email)}
+            index={closedContactsData.findIndex(
+              (item) => item.email === row.email,
+            )}
           />
         ),
       },

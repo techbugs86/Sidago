@@ -124,7 +124,9 @@ const navigationByRole: Record<UserRole, NavigationItem[]> = {
       icon: LayoutDashboard,
     },
     ...agentNavigation.filter((item) => item.href !== "/agent/dashboard"),
-    ...backofficeNavigation.filter((item) => item.href !== "/manager/dashboard"),
+    ...backofficeNavigation.filter(
+      (item) => item.href !== "/manager/dashboard",
+    ),
   ],
   backoffice: backofficeNavigation,
 };

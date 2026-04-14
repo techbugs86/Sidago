@@ -1,10 +1,6 @@
 "use client";
 
-import {
-  CompanySymbolBadge,
-  TimezoneBadge,
-  TypeBadge,
-} from "@/components/ui";
+import { CompanySymbolBadge, TimezoneBadge, TypeBadge } from "@/components/ui";
 import { Table, type Column } from "@/components/ui/Table";
 import React, { useMemo } from "react";
 import {

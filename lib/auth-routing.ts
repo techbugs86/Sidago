@@ -37,16 +37,12 @@ export function hasRouteAccess(role: UserRole, pathname: string): boolean {
   }
 
   if (role === "agent") {
-    return (
-      pathname.startsWith("/agent/") ||
-      pathname === "/agent/dashboard"
-    );
+    return pathname.startsWith("/agent/") || pathname === "/agent/dashboard";
   }
 
   if (role === "backoffice") {
     return (
-      pathname.startsWith("/backoffice/") ||
-      pathname === "/manager/dashboard"
+      pathname.startsWith("/backoffice/") || pathname === "/manager/dashboard"
     );
   }
 
