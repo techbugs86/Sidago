@@ -15,8 +15,8 @@ export default function Dashboard() {
     return <AgentDashboard />;
   }
 
-  if(user.role === "backoffice"){
-    return <BackofficeDashboard/>;
+  if (user.role === "backoffice") {
+    return <BackofficeDashboard />;
   }
 
   return null;

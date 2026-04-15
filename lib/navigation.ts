@@ -1,5 +1,4 @@
 import {
-  BarChart,
   Clock,
   Flame,
   LayoutDashboard,
@@ -7,7 +6,6 @@ import {
   Package,
   Phone,
   RotateCcw,
-  Trophy,
   type LucideIcon,
 } from "lucide-react";
 
@@ -97,11 +95,6 @@ const backofficeNavigation: NavigationItem[] = [
     label: "Ever Been Hot - Benton",
     href: "/ever-been-hot-benton",
     icon: RotateCcw,
-  },
-  {
-    label: "Monthly Stats. & Points",
-    href: "/monthly-stats-points",
-    icon: BarChart,
   },
   {
     label: "Closed Contacts",

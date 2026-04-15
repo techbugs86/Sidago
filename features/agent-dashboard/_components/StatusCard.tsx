@@ -1,5 +1,8 @@
 import { Agent } from "@/types";
-import { CompanySymbolBadge, StatusCard as UiStatusCard } from "@/components/ui";
+import {
+  CompanySymbolBadge,
+  StatusCard as UiStatusCard,
+} from "@/components/ui";
 import { AgentIdentity } from "./AgentIdentity";
 import { WinnerBadge } from "./WinnerBadge";
 import { getAgentColor, getAgentDetailStats } from "../_lib/utils";

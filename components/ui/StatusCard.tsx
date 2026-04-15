@@ -64,7 +64,10 @@ export function StatusCard({
 
         {metrics.length > 0 && (
           <div
-            className={clsx("grid grid-cols-3 gap-3", metricsClassName)}
+            className={clsx(
+              "grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3",
+              metricsClassName,
+            )}
           >
             {metrics.map((metric, index) => (
               <div
