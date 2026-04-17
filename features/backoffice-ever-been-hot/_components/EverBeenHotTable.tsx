@@ -4,6 +4,7 @@ import { CompanySymbolBadge, TimezoneBadge, TypeBadge } from "@/components/ui";
 import { Table, type Column } from "@/components/ui/Table";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import React, { useMemo } from "react";
+import { EverBeenHotDrawer } from "./EverBeenHotDrawer";
 
 import {
   assigneeOptions,
@@ -248,8 +249,15 @@ export function EverBeenHotTable({
         title={title}
         onRowClick={(row) => {
           const index = data.findIndex((item) => item.email === row.email);
-          // updateRouteForIndex(index >= 0 ? index : null);
+          updateRouteForIndex(index >= 0 ? index : null);
         }}
+      />
+      <EverBeenHotDrawer
+        data={data}
+        columns={columns}
+        selectedIndex={selectedIndex}
+        onSelectedIndexChange={updateRouteForIndex}
+        onClose={() => updateRouteForIndex(null)}
       />
     </div>
   );
