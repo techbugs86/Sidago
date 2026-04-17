@@ -37,7 +37,10 @@ export interface DrawerProps {
 }
 
 // ─── animation variants ────────────────────────────────────────────────────
-const slide: Record<DrawerDirection, { initial: object; exit: object }> = {
+const slide: Record<
+  DrawerDirection,
+  { initial: Record<string, string>; exit: Record<string, string> }
+> = {
   left: { initial: { x: "-100%" }, exit: { x: "-100%" } },
   right: { initial: { x: "100%" }, exit: { x: "100%" } },
   top: { initial: { y: "-100%" }, exit: { y: "-100%" } },
@@ -126,7 +129,7 @@ export function Drawer({
               <button
                 onClick={onClose}
                 aria-label="Close drawer"
-                className="ml-3 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-800 dark:hover:text-gray-200"
+                className="ml-3 flex h-7 w-7 shrink-0 items-center cursor-pointer justify-center rounded text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600 dark:hover:bg-gray-800 dark:hover:text-gray-200"
               >
                 <X size={18} />
               </button>

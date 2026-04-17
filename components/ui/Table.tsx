@@ -35,6 +35,7 @@ type Props<T> = {
   emptyText?: string;
   emptyState?: React.ReactNode;
   showTableWhenEmpty?: boolean;
+  onRowClick?: (row: T) => void;
   title: string;
   description?: string;
 };
@@ -107,6 +108,7 @@ export function Table<T>({
   emptyText = "No data found",
   emptyState,
   showTableWhenEmpty = false,
+  onRowClick,
 }: Props<T>) {
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
   const tableElementRef = useRef<HTMLTableElement | null>(null);
@@ -374,7 +376,13 @@ export function Table<T>({
             : group.rows.map((row, index) => (
                 <tr
                   key={`${group.id}-${index}`}
-                  className="hover:bg-indigo-50/40 transition-colors duration-150"
+                  onClick={onRowClick ? () => onRowClick(row) : undefined}
+                  className={clsx(
+                    "transition-colors duration-150",
+                    onRowClick
+                      ? "cursor-pointer hover:bg-indigo-50/40"
+                      : "hover:bg-indigo-50/40",
+                  )}
                 >
                   {columns.map((col) => (
                     <td
@@ -627,7 +635,7 @@ export function Table<T>({
 
                     <div className="flex items-center gap-2 shrink-0 md:justify-self-end">
                       <Popover className="relative">
-                        <PopoverButton className="flex cursor-pointer items-center justify-center h-9 w-9 rounded-lg outline-0 ring-0 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-900">
+                        <PopoverButton className="flex items-center justify-center h-9 w-9 rounded-lg outline-0 ring-0 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-900">
                           <Ellipsis size={16} />
                         </PopoverButton>
 
@@ -1266,7 +1274,13 @@ export function Table<T>({
               paginatedData.map((row, i) => (
                 <tr
                   key={`${safeCurrentPage}-${i}`}
-                  className="hover:bg-indigo-50/40 dark:hover:bg-slate-100 transition-colors duration-150"
+                  onClick={onRowClick ? () => onRowClick(row) : undefined}
+                  className={clsx(
+                    "transition-colors duration-150 dark:hover:bg-slate-800",
+                    onRowClick
+                      ? "cursor-pointer hover:bg-indigo-50/40"
+                      : "hover:bg-indigo-50/40",
+                  )}
                 >
                   {columns.map((col) => (
                     <td

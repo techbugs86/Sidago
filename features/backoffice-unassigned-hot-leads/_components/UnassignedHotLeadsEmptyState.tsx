@@ -11,7 +11,7 @@ export function UnassignedHotLeadsEmptyState({
     <div className="px-6 py-16 md:px-10">
       <div className="mx-auto flex max-w-xl flex-col items-center rounded-3xl border border-slate-200/80 bg-white/85 px-6 py-12 text-center shadow-sm dark:border-slate-800 dark:bg-slate-950/70">
         <div className="mb-6 flex h-36 w-full max-w-sm items-center justify-center rounded-3xl border border-slate-200/80 bg-slate-50/80 px-6 dark:border-slate-800 dark:bg-slate-900/60">
-          <div className="w-full max-w-[240px] space-y-3">
+          <div className="w-full max-w-60 space-y-3">
             <div className="h-3 w-24 rounded-full bg-slate-300/80 dark:bg-slate-700" />
             <div className="space-y-2 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-slate-700 dark:bg-slate-950/80">
               <div className="flex items-center gap-3">

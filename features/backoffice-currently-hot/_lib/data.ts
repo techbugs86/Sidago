@@ -10,6 +10,17 @@ export {
 } from "@/features/backoffice-shared/constants";
 
 import type { HotLeadRow } from "@/features/backoffice-shared/types";
+const roles = [
+  "Sales Rep",
+  "Closer",
+  "Manager",
+  "Support",
+  "BD Executive",
+] as const;
+
+const getRandomRole = () => {
+  return roles[Math.floor(Math.random() * roles.length)];
+};
 
 export const svgCurrentlyHotLeadsData: HotLeadRow[] = [
   {
@@ -18,6 +29,7 @@ export const svgCurrentlyHotLeadsData: HotLeadRow[] = [
     fullName: "Ariana West",
     phone: "+1 415 221 0901",
     email: "ariana@northwind.io",
+    role: getRandomRole(),
     timezone: "EST",
     contactType: "Interested",
     svgLeadType: "Hot",
@@ -33,6 +45,7 @@ export const svgCurrentlyHotLeadsData: HotLeadRow[] = [
     bentonDateBecomeHot: "2026-04-09",
     rm95DateBecomeHot: "2026-04-07",
     lastActionDate: "2026-04-12 10:30 AM",
+    notWorked: false,
   },
   {
     lead: "Qualified",
@@ -40,6 +53,7 @@ export const svgCurrentlyHotLeadsData: HotLeadRow[] = [
     fullName: "Rayan Chowdhury",
     phone: "+1 202 555 0188",
     email: "rayan@bluepeak.com",
+    role: getRandomRole(),
     timezone: "PST",
     contactType: "Call Lead Back",
     svgLeadType: "Warm",
@@ -55,6 +69,7 @@ export const svgCurrentlyHotLeadsData: HotLeadRow[] = [
     bentonDateBecomeHot: "2026-04-12",
     rm95DateBecomeHot: "2026-04-10",
     lastActionDate: "2026-04-14 03:15 PM",
+    notWorked: false,
   },
   {
     lead: "Hot Lead",
@@ -62,6 +77,7 @@ export const svgCurrentlyHotLeadsData: HotLeadRow[] = [
     fullName: "Nabila Ahmed",
     phone: "+1 718 555 0133",
     email: "nabila@brightpath.health",
+    role: getRandomRole(),
     timezone: "EST",
     contactType: "Interested",
     svgLeadType: "Hot",
@@ -77,6 +93,7 @@ export const svgCurrentlyHotLeadsData: HotLeadRow[] = [
     bentonDateBecomeHot: "2026-04-13",
     rm95DateBecomeHot: "2026-04-12",
     lastActionDate: "2026-04-15 11:05 AM",
+    notWorked: false,
   },
   {
     lead: "Interested",
@@ -84,6 +101,7 @@ export const svgCurrentlyHotLeadsData: HotLeadRow[] = [
     fullName: "Laura Chen",
     phone: "+1 206 555 0107",
     email: "laura@summitfreight.com",
+    role: getRandomRole(),
     timezone: "PST",
     contactType: "Interested",
     svgLeadType: "Referral",
@@ -99,6 +117,7 @@ export const svgCurrentlyHotLeadsData: HotLeadRow[] = [
     bentonDateBecomeHot: "2026-04-07",
     rm95DateBecomeHot: "2026-04-06",
     lastActionDate: "2026-04-09 12:10 PM",
+    notWorked: false,
   },
   {
     lead: "Follow Up",
@@ -106,6 +125,7 @@ export const svgCurrentlyHotLeadsData: HotLeadRow[] = [
     fullName: "Marcus Bell",
     phone: "+1 312 555 0194",
     email: "marcus@crestlineops.com",
+    role: getRandomRole(),
     timezone: "CST",
     contactType: "Left Message",
     svgLeadType: "Warm",
@@ -121,6 +141,7 @@ export const svgCurrentlyHotLeadsData: HotLeadRow[] = [
     bentonDateBecomeHot: "2026-04-14",
     rm95DateBecomeHot: "2026-04-13",
     lastActionDate: "2026-04-16 01:40 PM",
+    notWorked: false,
   },
 ];
 
@@ -131,6 +152,7 @@ export const bentonCurrentlyHotLeadsData: HotLeadRow[] = [
     fullName: "Sadia Rahman",
     phone: "+1 303 555 0192",
     email: "sadia@atlasfreight.com",
+    role: getRandomRole(),
     timezone: "CST",
     contactType: "Prospecting",
     svgLeadType: "General",
@@ -146,6 +168,7 @@ export const bentonCurrentlyHotLeadsData: HotLeadRow[] = [
     bentonDateBecomeHot: "2026-04-09",
     rm95DateBecomeHot: "2026-04-07",
     lastActionDate: "2026-04-11 09:45 AM",
+    notWorked: false,
   },
   {
     lead: "Re-Engaged",
@@ -153,6 +176,7 @@ export const bentonCurrentlyHotLeadsData: HotLeadRow[] = [
     fullName: "Imran Ali",
     phone: "+1 617 555 0114",
     email: "imran@vertexcommerce.com",
+    role: getRandomRole(),
     timezone: "GMT",
     contactType: "No Answer",
     svgLeadType: "Warm",
@@ -168,6 +192,7 @@ export const bentonCurrentlyHotLeadsData: HotLeadRow[] = [
     bentonDateBecomeHot: "2026-04-07",
     rm95DateBecomeHot: "2026-04-05",
     lastActionDate: "2026-04-10 04:40 PM",
+    notWorked: false,
   },
   {
     lead: "Qualified",
@@ -175,6 +200,7 @@ export const bentonCurrentlyHotLeadsData: HotLeadRow[] = [
     fullName: "Grace Miller",
     phone: "+1 212 555 0129",
     email: "grace@harborledger.com",
+    role: getRandomRole(),
     timezone: "EST",
     contactType: "Call Lead Back",
     svgLeadType: "Hot",
@@ -190,6 +216,7 @@ export const bentonCurrentlyHotLeadsData: HotLeadRow[] = [
     bentonDateBecomeHot: "2026-04-14",
     rm95DateBecomeHot: "2026-04-12",
     lastActionDate: "2026-04-16 08:55 AM",
+    notWorked: false,
   },
   {
     lead: "Hot Lead",
@@ -197,6 +224,7 @@ export const bentonCurrentlyHotLeadsData: HotLeadRow[] = [
     fullName: "Sophia Turner",
     phone: "+44 20 7946 0132",
     email: "sophia@evercoremedia.co.uk",
+    role: getRandomRole(),
     timezone: "GMT",
     contactType: "Interested",
     svgLeadType: "Warm",
@@ -212,6 +240,7 @@ export const bentonCurrentlyHotLeadsData: HotLeadRow[] = [
     bentonDateBecomeHot: "2026-04-16",
     rm95DateBecomeHot: "2026-04-14",
     lastActionDate: "2026-04-17 02:25 PM",
+    notWorked: false,
   },
   {
     lead: "Interested",
@@ -219,6 +248,7 @@ export const bentonCurrentlyHotLeadsData: HotLeadRow[] = [
     fullName: "Daniel Ross",
     phone: "+1 469 555 0141",
     email: "daniel@lumenworks.com",
+    role: getRandomRole(),
     timezone: "CST",
     contactType: "Interested",
     svgLeadType: "Referral",
@@ -234,6 +264,7 @@ export const bentonCurrentlyHotLeadsData: HotLeadRow[] = [
     bentonDateBecomeHot: "2026-04-16",
     rm95DateBecomeHot: "2026-04-14",
     lastActionDate: "2026-04-18 10:25 AM",
+    notWorked: false,
   },
 ];
 
@@ -244,6 +275,7 @@ export const rm95CurrentlyHotLeadsData: HotLeadRow[] = [
     fullName: "Jon Mercer",
     phone: "+1 646 555 0177",
     email: "jon@pixelmint.co",
+    role: getRandomRole(),
     timezone: "MST",
     contactType: "Left Message",
     svgLeadType: "Cold",
@@ -259,6 +291,7 @@ export const rm95CurrentlyHotLeadsData: HotLeadRow[] = [
     bentonDateBecomeHot: "2026-04-08",
     rm95DateBecomeHot: "2026-04-08",
     lastActionDate: "2026-04-13 01:20 PM",
+    notWorked: false,
   },
   {
     lead: "Qualified",
@@ -266,6 +299,7 @@ export const rm95CurrentlyHotLeadsData: HotLeadRow[] = [
     fullName: "Victor Lopez",
     phone: "+34 91 555 0130",
     email: "victor@transitcore.es",
+    role: getRandomRole(),
     timezone: "CET",
     contactType: "Interested",
     svgLeadType: "Hot",
@@ -281,6 +315,7 @@ export const rm95CurrentlyHotLeadsData: HotLeadRow[] = [
     bentonDateBecomeHot: "2026-04-15",
     rm95DateBecomeHot: "2026-04-17",
     lastActionDate: "2026-04-18 05:05 PM",
+    notWorked: false,
   },
   {
     lead: "Follow Up",
@@ -288,6 +323,7 @@ export const rm95CurrentlyHotLeadsData: HotLeadRow[] = [
     fullName: "Priya Sen",
     phone: "+91 80 5555 0198",
     email: "priya@orbitanalytics.in",
+    role: getRandomRole(),
     timezone: "IST",
     contactType: "Call Lead Back",
     svgLeadType: "Referral",
@@ -303,6 +339,7 @@ export const rm95CurrentlyHotLeadsData: HotLeadRow[] = [
     bentonDateBecomeHot: "2026-04-11",
     rm95DateBecomeHot: "2026-04-11",
     lastActionDate: "2026-04-13 07:35 PM",
+    notWorked: false,
   },
   {
     lead: "Interested",
@@ -310,6 +347,7 @@ export const rm95CurrentlyHotLeadsData: HotLeadRow[] = [
     fullName: "Hiro Tanaka",
     phone: "+81 3 5550 0120",
     email: "hiro@apeximports.jp",
+    role: getRandomRole(),
     timezone: "JST",
     contactType: "Interested",
     svgLeadType: "Warm",
@@ -325,6 +363,7 @@ export const rm95CurrentlyHotLeadsData: HotLeadRow[] = [
     bentonDateBecomeHot: "2026-04-10",
     rm95DateBecomeHot: "2026-04-10",
     lastActionDate: "2026-04-12 10:05 AM",
+    notWorked: false,
   },
   {
     lead: "Re-Engaged",
@@ -332,6 +371,7 @@ export const rm95CurrentlyHotLeadsData: HotLeadRow[] = [
     fullName: "Elena Cruz",
     phone: "+1 305 555 0162",
     email: "elena@metrovertex.com",
+    role: getRandomRole(),
     timezone: "EST",
     contactType: "Interested",
     svgLeadType: "General",
@@ -347,6 +387,7 @@ export const rm95CurrentlyHotLeadsData: HotLeadRow[] = [
     bentonDateBecomeHot: "2026-04-11",
     rm95DateBecomeHot: "2026-04-13",
     lastActionDate: "2026-04-15 04:10 PM",
+    notWorked: false,
   },
 ];
 

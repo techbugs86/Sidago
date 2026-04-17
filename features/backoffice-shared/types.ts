@@ -3,6 +3,7 @@ export type HotLeadRow = {
   companyName: string;
   fullName: string;
   phone: string;
+  role: string;
   email: string;
   timezone: string;
   contactType: string;
@@ -19,4 +20,6 @@ export type HotLeadRow = {
   bentonDateBecomeHot: string;
   rm95DateBecomeHot: string;
   lastActionDate: string;
+  lastFixedDate?: string;
+  notWorked: boolean;
 };
