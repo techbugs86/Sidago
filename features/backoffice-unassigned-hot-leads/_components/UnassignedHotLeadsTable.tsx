@@ -2,7 +2,9 @@
 
 import { CompanySymbolBadge, TimezoneBadge, TypeBadge } from "@/components/ui";
 import { Table, type Column } from "@/components/ui/Table";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import React, { useMemo } from "react";
+import { UnassignedHotLeadsDrawer } from "./UnassignedHotLeadsDrawer";
 import { UnassignedHotLeadsEmptyState } from "./UnassignedHotLeadsEmptyState";
 import {
   assigneeOptions,
@@ -26,6 +28,36 @@ export function UnassignedHotLeadsTable({
   title,
   variant,
 }: UnassignedHotLeadsTableProps) {
+  const pathname = usePathname();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const selectedIndex = useMemo(() => {
+    const selectedLead = searchParams.get("lead");
+
+    if (!selectedLead) {
+      return null;
+    }
+
+    const nextIndex = data.findIndex((row) => row.email === selectedLead);
+    return nextIndex >= 0 ? nextIndex : null;
+  }, [data, searchParams]);
+
+  const updateRouteForIndex = (index: number | null) => {
+    const params = new URLSearchParams(searchParams.toString());
+
+    if (index === null) {
+      params.delete("lead");
+    } else {
+      params.set("lead", data[index].email);
+    }
+
+    const query = params.toString();
+    router.replace(query ? `${pathname}?${query}` : pathname, {
+      scroll: false,
+    });
+  };
+
   const columns = useMemo<Column<UnassignedHotLeadRow>[]>(() => {
     const baseColumns: Column<UnassignedHotLeadRow>[] = [
       {
@@ -234,9 +266,20 @@ export function UnassignedHotLeadsTable({
         columns={columns}
         title={title}
         showTableWhenEmpty={variant === "svg"}
+        onRowClick={(row) => {
+          const index = data.findIndex((item) => item.email === row.email);
+          updateRouteForIndex(index >= 0 ? index : null);
+        }}
         emptyState={
           <UnassignedHotLeadsEmptyState subtitle="Your team has already picked up every hot lead in this queue. When new unassigned leads arrive, they will appear here automatically." />
         }
+      />
+      <UnassignedHotLeadsDrawer
+        data={data}
+        columns={columns}
+        selectedIndex={selectedIndex}
+        onSelectedIndexChange={updateRouteForIndex}
+        onClose={() => updateRouteForIndex(null)}
       />
     </div>
   );
