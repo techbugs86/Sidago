@@ -41,7 +41,13 @@ type Props<T> = {
 };
 
 type SortDirection = "asc" | "desc";
-type FilterOperator = "contains" | "is";
+type FilterOperator =
+  | "contains"
+  | "does_not_contain"
+  | "is"
+  | "is_not"
+  | "is_empty"
+  | "is_not_empty";
 type FilterJoin = "and" | "or";
 
 type FilterCondition = {
@@ -97,6 +103,10 @@ function createSortRule(field = ""): SortRule {
     field,
     direction: "asc",
   };
+}
+
+function operatorNeedsValue(operator: FilterOperator) {
+  return operator !== "is_empty" && operator !== "is_not_empty";
 }
 
 export function Table<T>({
@@ -159,7 +169,9 @@ export function Table<T>({
       }
 
       const activeConditions = filterConditions.filter(
-        (condition) => condition.field && condition.value.trim(),
+        (condition) =>
+          condition.field &&
+          (!operatorNeedsValue(condition.operator) || condition.value.trim()),
       );
 
       if (activeConditions.length === 0) {
@@ -177,7 +189,17 @@ export function Table<T>({
         ).toLowerCase();
         const query = condition.value.trim().toLowerCase();
         const matchesCondition =
-          condition.operator === "is" ? value === query : value.includes(query);
+          condition.operator === "contains"
+            ? value.includes(query)
+            : condition.operator === "does_not_contain"
+              ? !value.includes(query)
+              : condition.operator === "is"
+                ? value === query
+                : condition.operator === "is_not"
+                  ? value !== query
+                  : condition.operator === "is_empty"
+                    ? value.trim() === ""
+                    : value.trim() !== "";
 
         if (result === null) {
           result = matchesCondition;
@@ -882,6 +904,11 @@ export function Table<T>({
                                       ...item,
                                       operator: e.target
                                         .value as FilterOperator,
+                                      value: operatorNeedsValue(
+                                        e.target.value as FilterOperator,
+                                      )
+                                        ? item.value
+                                        : "",
                                     }
                                   : item,
                               ),
@@ -889,13 +916,27 @@ export function Table<T>({
                           }
                           options={[
                             { label: "contains", value: "contains" },
+                            {
+                              label: "does not contain",
+                              value: "does_not_contain",
+                            },
                             { label: "is", value: "is" },
+                            { label: "is not", value: "is_not" },
+                            { label: "is empty", value: "is_empty" },
+                            {
+                              label: "is not empty",
+                              value: "is_not_empty",
+                            },
                           ]}
                           placeholder=""
                           className="h-10 rounded text-sm"
                         />
 
-                        {currentColumn?.type === "select" ? (
+                        {!operatorNeedsValue(condition.operator) ? (
+                          <div className="flex h-10 items-center rounded-lg border border-dashed border-slate-200 px-3 text-sm text-slate-400 dark:border-slate-700 dark:text-slate-500">
+                            No value needed
+                          </div>
+                        ) : currentColumn?.type === "select" ? (
                           <Select
                             value={condition.value}
                             onChange={(e) =>
