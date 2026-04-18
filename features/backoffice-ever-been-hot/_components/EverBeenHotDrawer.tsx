@@ -12,6 +12,7 @@ import { ChevronDown, ChevronUp, Link, Printer } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { Badge } from "@/components/ui/Badge";
+import Revisions from "@/features/backoffice-shared/Revisions";
 
 type EverBeenHotDrawerProps = {
   data: EverBeenHotRow[];
@@ -197,6 +198,7 @@ export function EverBeenHotDrawer({
           </div>
         </div>
       }
+      footer={<Revisions />}
     >
       <div className="space-y-5">
         <DetailCard>

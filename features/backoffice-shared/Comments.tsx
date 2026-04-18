@@ -1,5 +1,6 @@
 "use client";
 
+import { Avatar } from "@/components/ui/Avatar";
 import {
   Popover,
   PopoverButton,
@@ -431,16 +432,6 @@ export default function Comments() {
 }
 
 // ---------------- COMPONENTS ----------------
-function Avatar({ name }: { name: string }) {
-  return (
-    <div
-      className="h-8 w-8 flex items-center justify-center rounded-full text-xs font-semibold
-    bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200"
-    >
-      {name[0]}
-    </div>
-  );
-}
 
 function CommentItem({
   comment,

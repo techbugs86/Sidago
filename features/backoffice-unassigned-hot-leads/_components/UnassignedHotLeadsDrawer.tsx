@@ -12,7 +12,7 @@ import { getCompanySymbol, type UnassignedHotLeadRow } from "../_lib/data";
 import { ChevronDown, ChevronUp, Link, Printer } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
-import Comments from "@/features/backoffice-shared/Comments";
+import Revisions from "@/features/backoffice-shared/Revisions";
 
 type UnassignedHotLeadsDrawerProps = {
   data: UnassignedHotLeadRow[];
@@ -192,6 +192,7 @@ export function UnassignedHotLeadsDrawer({
           </div>
         </div>
       }
+      footer={<Revisions />}
     >
       <div className="space-y-5">
         <DetailCard>
