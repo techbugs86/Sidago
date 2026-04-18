@@ -12,6 +12,7 @@ import { getCompanySymbol, type UnassignedHotLeadRow } from "../_lib/data";
 import { ChevronDown, ChevronUp, Link, Printer } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
+import Comments from "@/features/backoffice-shared/Comments";
 
 type UnassignedHotLeadsDrawerProps = {
   data: UnassignedHotLeadRow[];

@@ -140,7 +140,7 @@ export function Drawer({
 
             {/* Footer — only rendered when provided */}
             {footer && (
-              <div className="shrink-0 border-t border-gray-200 px-5 py-4 dark:border-gray-700">
+              <div className="relative z-10 shrink-0 overflow-visible border-t border-gray-200 dark:border-gray-700">
                 {footer}
               </div>
             )}

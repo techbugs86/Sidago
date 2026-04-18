@@ -13,6 +13,7 @@ import { ChevronDown, ChevronUp, Link, Printer } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { getCompanySymbol } from "@/features/backoffice-shared/constants";
+import Comments from "@/features/backoffice-shared/Comments";
 
 type RecentInterestDrawerProps = {
   data: RecentInterestRow[];
@@ -204,6 +205,7 @@ export function RecentInterestDrawer({
           </div>
         </div>
       }
+      footer={<Comments />}
     >
       <div className="space-y-5">
         <DetailCard>

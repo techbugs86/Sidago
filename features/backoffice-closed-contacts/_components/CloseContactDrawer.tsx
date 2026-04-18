@@ -12,6 +12,7 @@ import { getCompanySymbol } from "../_lib/data";
 import { Check, ChevronDown, ChevronUp, Copy, Printer } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
+import Comments from "@/features/backoffice-shared/Comments";
 
 type ClosedContactDrawerProps = {
   data: ClosedContactRow[];
@@ -195,6 +196,7 @@ export function ClosedContactDrawer({
           </div>
         </div>
       }
+      footer={<Comments />}
     >
       <div className="space-y-5">
         {/* Company identity */}
