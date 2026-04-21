@@ -8,6 +8,7 @@ import { NavigationItem } from "@/lib/navigation";
 import { useAuth } from "@/providers/AuthProvider";
 import { usePathname } from "next/navigation";
 import { SidebarRoleBadge } from "./SidebarRoleBadge";
+import clsx from "clsx";
 
 export type Props = {
   isCollapsed: boolean;
@@ -30,11 +31,14 @@ export const Sidebar = ({
         width: isCollapsed ? 80 : 280,
         transition: { type: "spring", stiffness: 300, damping: 30 },
       }}
-      className="fixed inset-y-0 left-0 z-50 hidden flex-col border-r border-slate-200/80 bg-white/90 shadow-xl shadow-indigo-100/50 backdrop-blur-md transition-colors dark:border-slate-600 dark:bg-slate-950/85 dark:shadow-black/25 md:flex"
+      className="fixed inset-y-0 left-0 z-50 hidden flex-col overflow-visible border-r border-slate-200/80 bg-white/90 shadow-xl shadow-indigo-100/50 backdrop-blur-md transition-colors dark:border-slate-600 dark:bg-slate-950/85 dark:shadow-black/25 md:flex"
     >
       <div className="relative flex items-center justify-between overflow-hidden p-4">
         <div className="flex items-center gap-3 min-w-0">
-          <div className="bg-indigo-600 p-1.5 rounded text-white shrink-0">
+          <div className={clsx(
+            "bg-indigo-600 p-1.5 rounded text-white shrink-0",
+            isCollapsed ? "opacity-0" : "opacity-100"
+          )}>
             <ShieldCheck size={18} />
           </div>
 
@@ -52,10 +56,10 @@ export const Sidebar = ({
           type="button"
           onClick={() => setIsCollapsed(!isCollapsed)}
           className={`
-      absolute right-3 top-1/2 -translate-y-1/2
+      absolute top-1/2 -translate-y-1/2
       flex h-8 w-8 items-center justify-center
       cursor-pointer rounded transition hover:bg-slate-100 dark:hover:bg-slate-800
-      ${isCollapsed ? "z-50 border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900" : "z-10 text-slate-600 dark:text-slate-300"}
+      ${isCollapsed ? "right-4 z-50 border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900" : "right-3 z-10 text-slate-600 dark:text-slate-300"}
     `}
           aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
@@ -67,7 +71,7 @@ export const Sidebar = ({
         </Button>
       </div>
 
-      <nav className="mb-10 mt-4 flex-1 overflow-y-auto overflow-x-hidden px-3">
+      <nav className="mb-10 mt-4 flex-1 overflow-y-auto overflow-x-visible px-3">
         {navigations.map((item) => (
           <SidebarItem
             key={item.href}

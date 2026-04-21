@@ -321,7 +321,7 @@ export default function Comments() {
 
           {/* Input */}
           <div className="p-4 border-b border-slate-200 dark:border-slate-700">
-            <Popover className="relative">
+            <Popover className="relative w-full">
               <div className="flex gap-2">
                 <input
                   value={input}
@@ -389,7 +389,7 @@ export default function Comments() {
                 leaveTo="opacity-0"
               >
                 <PopoverPanel
-                  className="absolute z-30 mt-2 w-48 rounded-lg border shadow-lg
+                  className="absolute bottom-full left-0 z-260 mb-1 w-48 rounded-lg border shadow-lg
                 bg-white dark:bg-slate-800
                 border-slate-200 dark:border-slate-700"
                 >
