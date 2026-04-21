@@ -51,7 +51,7 @@ export function IdentityCard({
             value={form.leadType}
             options={leadTypeSelectOptions}
             placeholder="Select lead type"
-            onChange={(event) => onChange({ leadType: event.target.value })}
+            onChange={(value) => onChange({ leadType: value as string })}
             className="w-full rounded-lg border-slate-300 bg-slate-50 text-sm text-slate-700 ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200"
           />
         </div>
@@ -82,7 +82,7 @@ export function IdentityCard({
             value={form.contactType}
             options={contactTypeSelectOptions}
             placeholder="Select contact type"
-            onChange={(event) => onChange({ contactType: event.target.value })}
+            onChange={(value) => onChange({ contactType: value as string })}
             className="w-full rounded-lg border-slate-300 bg-slate-50 text-sm text-slate-700 ring-0 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200"
           />
         </div>

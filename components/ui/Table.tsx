@@ -616,11 +616,11 @@ export function Table<T>({
                     <div className="min-w-0 flex-1">
                       <Select
                         value={groupRule.field}
-                        onChange={(e) =>
+                        onChange={(value) =>
                           setGroupRules((current) =>
                             current.map((item, itemIndex) =>
                               itemIndex === index
-                                ? { ...item, field: e.target.value }
+                                ? { ...item, field: value as string }
                                 : item,
                             ),
                           )
@@ -634,13 +634,13 @@ export function Table<T>({
                     <div className="min-w-0 flex-1">
                       <Select
                         value={groupRule.direction}
-                        onChange={(e) =>
+                        onChange={(value) =>
                           setGroupRules((current) =>
                             current.map((item, itemIndex) =>
                               itemIndex === index
                                 ? {
                                     ...item,
-                                    direction: e.target.value as SortDirection,
+                                    direction: value as SortDirection,
                                   }
                                 : item,
                             ),
@@ -722,15 +722,10 @@ export function Table<T>({
                     <div className="min-w-0 flex-1">
                       <Select
                         value=""
-                        onChange={(e) =>
+                        onChange={(value) =>
                           setGroupRules(
-                            e.target.value
-                              ? [
-                                  {
-                                    field: e.target.value,
-                                    direction: "asc",
-                                  },
-                                ]
+                            value
+                              ? [{ field: value as string, direction: "asc" }]
                               : [],
                           )
                         }
@@ -743,7 +738,7 @@ export function Table<T>({
                     <div className="min-w-0 flex-1">
                       <Select
                         value="asc"
-                        onChange={(e) =>
+                        onChange={(value) =>
                           setGroupRules((current) =>
                             current.length === 0
                               ? current
@@ -751,8 +746,7 @@ export function Table<T>({
                                   itemIndex === 0
                                     ? {
                                         ...item,
-                                        direction: e.target
-                                          .value as SortDirection,
+                                        direction: value as SortDirection,
                                       }
                                     : item,
                                 ),
@@ -853,14 +847,11 @@ export function Table<T>({
                         ) : (
                           <Select
                             value={condition.join}
-                            onChange={(e) =>
+                            onChange={(value) =>
                               setFilterConditions((items) =>
                                 items.map((item) =>
                                   item.id === condition.id
-                                    ? {
-                                        ...item,
-                                        join: e.target.value as FilterJoin,
-                                      }
+                                    ? { ...item, join: value as FilterJoin }
                                     : item,
                                 ),
                               )
@@ -876,15 +867,11 @@ export function Table<T>({
 
                         <Select
                           value={condition.field}
-                          onChange={(e) =>
+                          onChange={(value) =>
                             setFilterConditions((items) =>
                               items.map((item) =>
                                 item.id === condition.id
-                                  ? {
-                                      ...item,
-                                      field: e.target.value,
-                                      value: "",
-                                    }
+                                  ? { ...item, field: value as string, value: "" }
                                   : item,
                               ),
                             )
@@ -896,16 +883,15 @@ export function Table<T>({
 
                         <Select
                           value={condition.operator}
-                          onChange={(e) =>
+                          onChange={(value) =>
                             setFilterConditions((items) =>
                               items.map((item) =>
                                 item.id === condition.id
                                   ? {
                                       ...item,
-                                      operator: e.target
-                                        .value as FilterOperator,
+                                      operator: value as FilterOperator,
                                       value: operatorNeedsValue(
-                                        e.target.value as FilterOperator,
+                                        value as FilterOperator,
                                       )
                                         ? item.value
                                         : "",
@@ -939,11 +925,11 @@ export function Table<T>({
                         ) : currentColumn?.type === "select" ? (
                           <Select
                             value={condition.value}
-                            onChange={(e) =>
+                            onChange={(value) =>
                               setFilterConditions((items) =>
                                 items.map((item) =>
                                   item.id === condition.id
-                                    ? { ...item, value: e.target.value }
+                                    ? { ...item, value: value as string }
                                     : item,
                                 ),
                               )
@@ -1063,11 +1049,11 @@ export function Table<T>({
                     <div className="min-w-0 flex-1">
                       <Select
                         value={sortRule.field}
-                        onChange={(e) =>
+                        onChange={(value) =>
                           setSortRules((current) =>
                             current.map((item, itemIndex) =>
                               itemIndex === index
-                                ? { ...item, field: e.target.value }
+                                ? { ...item, field: value as string }
                                 : item,
                             ),
                           )
@@ -1081,14 +1067,11 @@ export function Table<T>({
                     <div className="min-w-0 flex-1">
                       <Select
                         value={sortRule.direction}
-                        onChange={(e) =>
+                        onChange={(value) =>
                           setSortRules((current) =>
                             current.map((item, itemIndex) =>
                               itemIndex === index
-                                ? {
-                                    ...item,
-                                    direction: e.target.value as SortDirection,
-                                  }
+                                ? { ...item, direction: value as SortDirection }
                                 : item,
                             ),
                           )
@@ -1126,11 +1109,9 @@ export function Table<T>({
                     <div className="min-w-0 flex-1">
                       <Select
                         value=""
-                        onChange={(e) =>
+                        onChange={(value) =>
                           setSortRules(
-                            e.target.value
-                              ? [createSortRule(e.target.value)]
-                              : [],
+                            value ? [createSortRule(value as string)] : [],
                           )
                         }
                         options={selectableColumns}
@@ -1142,17 +1123,13 @@ export function Table<T>({
                     <div className="min-w-0 flex-1">
                       <Select
                         value="asc"
-                        onChange={(e) =>
+                        onChange={(value) =>
                           setSortRules((current) =>
                             current.length === 0
                               ? current
                               : current.map((item, itemIndex) =>
                                   itemIndex === 0
-                                    ? {
-                                        ...item,
-                                        direction: e.target
-                                          .value as SortDirection,
-                                      }
+                                    ? { ...item, direction: value as SortDirection }
                                     : item,
                                 ),
                           )

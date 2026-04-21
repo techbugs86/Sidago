@@ -59,7 +59,7 @@ export const Sidebar = ({
       absolute top-1/2 -translate-y-1/2
       flex h-8 w-8 items-center justify-center
       cursor-pointer rounded transition hover:bg-slate-100 dark:hover:bg-slate-800
-      ${isCollapsed ? "right-4 z-50 border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900" : "right-3 z-10 text-slate-600 dark:text-slate-300"}
+      ${isCollapsed ? "right-5 z-50 border border-slate-200 bg-white shadow-sm dark:border-slate-700 dark:bg-slate-900" : "right-3 z-10 text-slate-600 dark:text-slate-300"}
     `}
           aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
