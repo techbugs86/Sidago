@@ -11,6 +11,7 @@ export { DateInput } from "./DateInput";
 export { Drawer } from "./Drawer";
 export type { DrawerProps, DrawerDirection } from "./Drawer";
 export { DropdownPanel } from "./DropdownPanel";
+export { EmailLink } from "./EmailLink";
 export { Card, CardContent } from "./Card";
 export { CardShell } from "./CardShell";
 export { Confirmation } from "./Confirmation";

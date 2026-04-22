@@ -14,6 +14,7 @@ export type RecentInterestRow = {
   notes: string;
   phone: string;
   timezone: string;
+  created?:string;
 };
 
 export const recentInterestLeadOptions = [

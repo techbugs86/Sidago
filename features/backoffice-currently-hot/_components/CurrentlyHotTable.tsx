@@ -191,7 +191,7 @@ export function CurrentlyHotTable({
     return [
       ...baseColumns,
       {
-        title: "SVG-Lead Type",
+        title: "Lead Type",
         key: "svgLeadType",
         type: "select",
         options: leadTypeOptions.map((value) => ({ label: value, value })),

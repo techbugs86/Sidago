@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  CampaignBadge,
   CompanySymbolBadge,
   Drawer,
   TimezoneBadge,
@@ -243,10 +242,14 @@ export function RecentInterestDrawer({
             label="Lead Type"
             value={<TypeBadge value={row.leadType} kind="lead" />}
           />
-          <Detail label="Assigned To" value={row.assignedTo} />
-          <Detail label="Follow-up Date" value={row.followUpDateCleaned} />
           <Detail
-            label="Follow-up Date(Cleaned)"
+            label="Created"
+            value={row.created}
+          />
+          <Detail label="Assigned To" value={row.assignedTo} />
+          <Detail label="Followup Date" value={row.followUpDateCleaned} />
+          <Detail
+            label="Followup Date(Cleaned)"
             value={row.followUpDateCleaned}
           />
           <Detail label="Call Result" value={row.callResult} />

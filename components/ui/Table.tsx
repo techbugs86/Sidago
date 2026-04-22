@@ -3,6 +3,7 @@ import { Popover, PopoverButton, PopoverPanel } from "@headlessui/react";
 import React, { useMemo, useRef, useState } from "react";
 import { Input } from "./Input";
 import { Select } from "./Select";
+import { EmailLink } from "./EmailLink";
 import {
   Check,
   ChevronDown,
@@ -86,6 +87,24 @@ function getCellValue<T>(row: T, column: Column<T> | (keyof T | string)) {
   }
 
   return row[column as keyof T] as React.ReactNode;
+}
+
+function isEmailColumn<T>(column: Column<T>) {
+  return String(column.key).toLowerCase() === "email";
+}
+
+function renderCellValue<T>(row: T, column: Column<T>) {
+  if (column.render) {
+    return column.render(row);
+  }
+
+  const value = getCellValue(row, column);
+
+  if (isEmailColumn(column)) {
+    return <EmailLink value={String(value ?? "")} />;
+  }
+
+  return value;
 }
 
 function createFilterCondition(field = ""): FilterCondition {
@@ -411,7 +430,7 @@ export function Table<T>({
                       key={col.title}
                       className="px-6 py-4 text-sm text-gray-700 dark:text-slate-200 whitespace-nowrap"
                     >
-                      {col.render ? col.render(row) : getCellValue(row, col)}
+                      {renderCellValue(row, col)}
                     </td>
                   ))}
                 </tr>
@@ -1305,9 +1324,7 @@ export function Table<T>({
                       key={col.title}
                       className="px-6 py-4 text-sm text-gray-700 transition-colors dark:text-white whitespace-nowrap"
                     >
-                      {col.render
-                        ? col.render(row)
-                        : getCellValue(row, col.key)}
+                      {renderCellValue(row, col)}
                     </td>
                   ))}
                 </tr>

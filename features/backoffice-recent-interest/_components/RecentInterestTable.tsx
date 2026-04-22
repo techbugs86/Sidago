@@ -76,8 +76,8 @@ export function RecentInterestTable({ data, title }: RecentInterestTableProps) {
         })),
         render: (row) => <CampaignBadge value={row.campaignType} />,
       },
-      { title: "Contact Person", key: "contactPerson" },
       { title: "Company Name", key: "companyName" },
+      { title: "Contact Person", key: "contactPerson" },
       { title: "Email", key: "email" },
       {
         title: "Assigned To",

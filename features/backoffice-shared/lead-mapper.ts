@@ -80,6 +80,7 @@ export function leadToRecentInterestRow(
   notes: string;
   phone: string;
   timezone: string;
+  created?:string;
 } {
   const followUpIso = lead.follow_up_date ?? lead.next_follow_up_date_sidago;
   return {
@@ -96,6 +97,7 @@ export function leadToRecentInterestRow(
     notes: lead.call_notes_sidago ?? "",
     phone: lead.phone ?? "",
     timezone: stripTimezonePrefix(lead.company?.timezone),
+    created: isoToDate(lead.created),
   };
 }
 
