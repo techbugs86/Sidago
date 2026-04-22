@@ -5,6 +5,7 @@ import {
   CompanySymbolBadge,
   DateInput,
   Drawer,
+  EmailLink,
   Select,
   Textarea,
   TextInput,
@@ -14,7 +15,7 @@ import {
 import type { Column } from "@/components/ui/Table";
 import { getCompanySymbol, type UnassignedHotLeadRow } from "../_lib/data";
 import { ChevronDown, ChevronUp, Link, Printer } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { isValidElement, useEffect, useMemo, useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import Revisions from "@/features/backoffice-shared/Revisions";
 import { AGENT_VALUES } from "@/types/agent.types";
@@ -398,6 +399,121 @@ export function UnassignedHotLeadsDrawer({
             />
           </EditableField>
         </DetailCard>
+
+        <DetailCard label="SVG Details">
+          <EditableField label="Lead Type">
+            <Select
+              value={form.svgLeadType}
+              onChange={(value) => updateForm("svgLeadType", String(value))}
+              options={leadTypeOptions}
+              placeholder="Select lead type"
+              className="py-1.5 text-xs"
+            />
+          </EditableField>
+          <EditableField label="To Be Called By">
+            <Select
+              value={form.svgToBeCalledBy}
+              onChange={(value) => updateForm("svgToBeCalledBy", String(value))}
+              options={agentOptions}
+              placeholder="Select assignee"
+              className="py-1.5 text-xs"
+            />
+          </EditableField>
+          <EditableField label="To Be Called On">
+            <DateInput
+              value={form.svgToBeCalledOn}
+              onChange={(event) =>
+                updateForm("svgToBeCalledOn", event.target.value)
+              }
+              className="text-xs font-semibold"
+            />
+          </EditableField>
+          <EditableField label="History Calls" align="stack">
+            <Textarea
+              value={form.svgHistoryCalls}
+              onChange={(event) =>
+                updateForm("svgHistoryCalls", event.target.value)
+              }
+              className="text-xs font-semibold leading-5"
+            />
+          </EditableField>
+          <EditableField label="History Notes" align="stack">
+            <Textarea
+              value={form.svgHistoryNotes}
+              onChange={(event) =>
+                updateForm("svgHistoryNotes", event.target.value)
+              }
+              className="text-xs font-semibold leading-5"
+            />
+          </EditableField>
+        </DetailCard>
+
+        <DetailCard label="Benton Details">
+          <EditableField label="Lead Type">
+            <Select
+              value={form.bentonLeadType}
+              onChange={(value) => updateForm("bentonLeadType", String(value))}
+              options={leadTypeOptions}
+              placeholder="Select lead type"
+              className="py-1.5 text-xs"
+            />
+          </EditableField>
+          <EditableField label="To Be Called By">
+            <Select
+              value={form.bentonToBeCalledBy}
+              onChange={(value) =>
+                updateForm("bentonToBeCalledBy", String(value))
+              }
+              options={agentOptions}
+              placeholder="Select assignee"
+              className="py-1.5 text-xs"
+            />
+          </EditableField>
+          <EditableField label="To Be Called On">
+            <DateInput
+              value={form.bentonToBeCalledOn}
+              onChange={(event) =>
+                updateForm("bentonToBeCalledOn", event.target.value)
+              }
+              className="text-xs font-semibold"
+            />
+          </EditableField>
+          <EditableField label="History Calls" align="stack">
+            <Textarea
+              value={form.bentonHistoryCalls}
+              onChange={(event) =>
+                updateForm("bentonHistoryCalls", event.target.value)
+              }
+              className="text-xs font-semibold leading-5"
+            />
+          </EditableField>
+          <EditableField label="History Notes" align="stack">
+            <Textarea
+              value={form.bentonHistoryNotes}
+              onChange={(event) =>
+                updateForm("bentonHistoryNotes", event.target.value)
+              }
+              className="text-xs font-semibold leading-5"
+            />
+          </EditableField>
+        </DetailCard>
+
+        <DetailCard label="Associated Contacts">
+          <DetailCard label={form.companyName}>
+            <AssociationDetail
+              label="Contact Type"
+              value={<TypeBadge value={form.contactType} kind="contact" />}
+            />
+            <AssociationDetail
+              label="SVG Lead Type"
+              value={<TypeBadge value={form.svgLeadType} kind="lead" />}
+            />
+            <AssociationDetail
+              label="Benton Lead Type"
+              value={<TypeBadge value={form.bentonLeadType} kind="lead" />}
+            />
+          </DetailCard>
+        </DetailCard>
       </div>
     </Drawer>
   );
@@ -433,6 +549,9 @@ function EditableField({
   children: React.ReactNode;
   align?: "row" | "stack";
 }) {
+  const [isEditing, setIsEditing] = useState(false);
+  const preview = getEditablePreview(label, children);
+
   return (
     <div
       className={
@@ -445,9 +564,70 @@ function EditableField({
         {label}
       </p>
       <div className={align === "stack" ? "w-full" : "w-64 max-w-[65%]"}>
-        {children}
+        {isEditing ? (
+          children
+        ) : (
+          <div
+            role="button"
+            tabIndex={0}
+            onClick={() => setIsEditing(true)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                setIsEditing(true);
+              }
+            }}
+            className={`w-full cursor-text rounded border border-gray-300 bg-white text-xs font-semibold text-slate-600 transition focus:border-indigo-500 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-slate-200 ${
+              align === "stack"
+                ? "min-h-[98px] px-3 py-2 text-left whitespace-pre-line"
+                : "min-h-[30px] px-3 py-1.5 text-right truncate"
+            }`}
+          >
+            {preview}
+          </div>
+        )}
       </div>
     </div>
+  );
+}
+
+function getEditablePreview(
+  label: string,
+  children: React.ReactNode,
+): React.ReactNode {
+  if (!isValidElement(children)) return <EmptyPreview label={label} />;
+
+  const props = children.props as {
+    value?: unknown;
+    checked?: boolean;
+    options?: Array<{ label: string; value: string | number }>;
+  };
+
+  if (typeof props.checked === "boolean") {
+    return props.checked ? "Yes" : "No";
+  }
+
+  const value = props.value == null ? "" : String(props.value);
+  if (!value) return <EmptyPreview label={label} />;
+
+  if (label.toLowerCase() === "email") {
+    return <EmailLink value={value} />;
+  }
+
+  const option = props.options?.find((item) => String(item.value) === value);
+  return option?.label ?? value;
+}
+
+function EmptyPreview({
+  label,
+}: {
+  label: string;
+}) {
+  return (
+    <span
+      aria-label={`Empty ${label}`}
+      className="block"
+    />
   );
 }
 
