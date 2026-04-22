@@ -50,3 +50,48 @@ export interface Agent {
   count_wins: number;
   all_points: number;
 }
+
+
+export type AGENT_TYPE = {
+  name:string;
+  surname:string;
+  email?:string;
+}
+
+export const AGENT_VALUES: AGENT_TYPE[] = [
+  {
+    name: "John",
+    surname: "Doe",
+    email: "john.doe@example.com"
+  },
+  {
+    name: "Jane",
+    surname: "Smith",
+    email: "jane.smith@example.com"
+  },
+  {
+    name: "Michael",
+    surname: "Johnson",
+    email: "michael.johnson@example.com"
+  },
+  {
+    name: "Emily",
+    surname: "Davis",
+    email: "emily.davis@example.com"
+  },
+  {
+    name: "David",
+    surname: "Wilson",
+    email: "david.wilson@example.com"
+  },
+];
+
+export const AGENT_OPTIONS = AGENT_VALUES.map((agent) => ({
+  value: agent,
+  label: `${agent.name} ${agent.surname}`,
+}));
+
+export function getRandomAgent(): AGENT_TYPE {
+  const randomIndex = Math.floor(Math.random() * AGENT_VALUES.length);
+  return AGENT_VALUES[randomIndex];
+}

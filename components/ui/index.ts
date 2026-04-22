@@ -6,6 +6,8 @@ export {
   TypeBadge,
 } from "./Badge";
 export { Button } from "./Button";
+export { CheckboxInput } from "./CheckboxInput";
+export { DateInput } from "./DateInput";
 export { Drawer } from "./Drawer";
 export type { DrawerProps, DrawerDirection } from "./Drawer";
 export { DropdownPanel } from "./DropdownPanel";
@@ -24,3 +26,4 @@ export { StatusCard } from "./StatusCard";
 export { Wave } from "./Spinner";
 export { Table } from "./Table";
 export { Textarea } from "./Textarea";
+export { TextInput } from "./TextInput";

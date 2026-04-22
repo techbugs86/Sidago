@@ -22,6 +22,8 @@ type Props = {
   value?: string | number;
   onChange?: (value: string | number) => void;
   className?: string;
+  optionsClassName?: string;
+  labelClassName?: string;
   disabled?: boolean;
 };
 
@@ -33,6 +35,8 @@ export function Select({
   placeholder = "Select an option",
   value,
   onChange,
+  optionsClassName,
+  labelClassName,
   disabled,
 }: Props) {
   const id = useId();
@@ -41,7 +45,7 @@ export function Select({
   return (
     <div className="flex w-full flex-col gap-1">
       {label && (
-        <label htmlFor={id} className="text-sm font-medium">
+        <label htmlFor={id} className={clsx("text-sm font-medium", labelClassName)}>
           {label}
         </label>
       )}
@@ -51,7 +55,7 @@ export function Select({
           <ListboxButton
             id={id}
             className={clsx(
-              "relative w-full cursor-pointer rounded border bg-white pr-8 text-left text-slate-900 transition focus:outline-none dark:bg-gray-800 dark:text-gray-100",
+              "relative w-full cursor-pointer rounded border bg-white pr-8 text-left text-slate-900 transition focus:border-indigo-500 focus:outline-none dark:bg-gray-800 dark:text-gray-100 dark:focus:border-indigo-400",
               error ? "border-red-500" : "border-gray-300 dark:border-gray-600",
               "px-4 py-2",
               className,
@@ -71,8 +75,10 @@ export function Select({
           </ListboxButton>
 
           <ListboxOptions
-            anchor="bottom start"
-            className="z-50 w-(--button-width) overflow-hidden rounded-lg border border-slate-200 bg-white py-1 shadow-lg dark:border-slate-700 dark:bg-gray-800"
+            className={clsx(
+              "absolute left-0 top-full z-[260] mt-1 max-h-64 w-full overflow-auto rounded-lg border border-slate-200 bg-white py-1 shadow-lg dark:border-slate-700 dark:bg-gray-800",
+              optionsClassName,
+            )}
           >
             {options.map((option) => (
               <ListboxOption
