@@ -265,7 +265,6 @@ export function UnassignedHotLeadsTable({
         data={data}
         columns={columns}
         title={title}
-        showTableWhenEmpty={variant === "svg"}
         onRowClick={(row) => {
           const index = data.findIndex((item) => item.email === row.email);
           updateRouteForIndex(index >= 0 ? index : null);

@@ -12,4 +12,4 @@ export {
 import type { HotLeadRow } from "@/features/backoffice-shared/types";
 import { generateHotLeadRows } from "@/features/backoffice-shared/lead-mapper";
 
-export const unassignedHotLeadsData: HotLeadRow[] = generateHotLeadRows(10);
+export const unassignedHotLeadsData: HotLeadRow[] = generateHotLeadRows(20);
