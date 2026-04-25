@@ -109,7 +109,10 @@ export function AgentEmail({ agentName, agentSlug }: AgentEmailProps) {
       current.map((row) => (row.id === nextRow.id ? nextRow : row)),
     );
     showSuccessToast("Email queue entry updated successfully.");
-    closeDrawer();
+    setDrawerState({
+      original: nextRow,
+      draft: nextRow,
+    });
   };
 
   return (

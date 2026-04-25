@@ -185,7 +185,13 @@ export function Companies() {
         ? "Company created successfully."
         : "Company updated successfully.",
     );
-    closeDrawer();
+    setDrawerState((current) => ({
+      ...current,
+      mode: "edit",
+      originalSymbol: nextCompany.symbol,
+      initialCompany: nextCompany,
+      draft: nextCompany,
+    }));
   };
 
   return (
