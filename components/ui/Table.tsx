@@ -38,6 +38,11 @@ type Props<T> = {
   onRowClick?: (row: T) => void;
   title: string;
   description?: string;
+  showGrouping?: boolean;
+  showFilters?: boolean;
+  showSorting?: boolean;
+  showSearch?: boolean;
+  showExtraActions?: boolean;
 };
 
 type SortDirection = "asc" | "desc";
@@ -155,6 +160,950 @@ function operatorNeedsValue(operator: FilterOperator) {
   return operator !== "is_empty" && operator !== "is_not_empty";
 }
 
+type SelectOption = {
+  value: string;
+  label: string;
+};
+
+const toolbarButtonClass =
+  "flex h-9 cursor-pointer items-center justify-center rounded-xl px-3 text-sm text-slate-700 transition outline-none focus:outline-none focus-visible:outline-none hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-900";
+const toolbarIconButtonClass =
+  "flex h-9 w-9 cursor-pointer items-center justify-center rounded-xl text-slate-700 transition outline-none focus:outline-none focus-visible:outline-none hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-900";
+
+const filterOperatorOptions: Array<{
+  label: string;
+  value: FilterOperator;
+}> = [
+  { label: "contains", value: "contains" },
+  { label: "does not contain", value: "does_not_contain" },
+  { label: "is", value: "is" },
+  { label: "is not", value: "is_not" },
+  { label: "is empty", value: "is_empty" },
+  { label: "is not empty", value: "is_not_empty" },
+];
+
+const groupDirectionOptions: Array<{ label: string; value: SortDirection }> = [
+  { label: "First to Last", value: "asc" },
+  { label: "Last to First", value: "desc" },
+];
+
+const sortDirectionOptions: Array<{ label: string; value: SortDirection }> = [
+  { label: "A to Z", value: "asc" },
+  { label: "Z to A", value: "desc" },
+];
+const emptyFilterItems: FilterItem[] = [];
+const emptySortRules: SortRule[] = [];
+const emptyGroupRules: GroupRule[] = [];
+
+function ToolbarCount({ count }: { count: number }) {
+  if (count <= 0) {
+    return null;
+  }
+
+  return (
+    <span className="ml-1 inline-flex min-w-5 items-center justify-center rounded-md bg-slate-800 px-1.5 py-0.5 text-[11px] font-semibold text-white">
+      {count}
+    </span>
+  );
+}
+
+function GroupPopover({
+  groupRules,
+  selectableColumns,
+  setGroupRules,
+  setShowCounts,
+  showCounts,
+}: {
+  groupRules: GroupRule[];
+  selectableColumns: SelectOption[];
+  setGroupRules: React.Dispatch<React.SetStateAction<GroupRule[]>>;
+  setShowCounts: React.Dispatch<React.SetStateAction<boolean>>;
+  showCounts: boolean;
+}) {
+  return (
+    <Popover className="relative">
+      <PopoverButton className={toolbarButtonClass}>
+        Group
+        <ToolbarCount count={groupRules.length} />
+      </PopoverButton>
+
+      <PopoverPanel
+        anchor="bottom end"
+        className="w-screen md:w-2xl border border-slate-200 shadow-2xl bg-white rounded-xl p-2 backdrop-blur-md transition-colors dark:border-slate-600 dark:bg-slate-950/70 flex flex-col overflow-visible"
+      >
+        <div className="space-y-3">
+          {groupRules.map((groupRule, index) => (
+            <div
+              key={`${groupRule.field}-${index}`}
+              className="grid w-full min-w-0 gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] md:items-center"
+            >
+              <div className="min-w-0 flex-1">
+                <Select
+                  value={groupRule.field}
+                  onChange={(value) =>
+                    setGroupRules((current) =>
+                      current.map((item, itemIndex) =>
+                        itemIndex === index
+                          ? { ...item, field: value as string }
+                          : item,
+                      ),
+                    )
+                  }
+                  options={selectableColumns}
+                  placeholder=""
+                  className="h-8 rounded text-xs w-full min-w-0"
+                />
+              </div>
+
+              <div className="min-w-0 flex-1">
+                <Select
+                  value={groupRule.direction}
+                  onChange={(value) =>
+                    setGroupRules((current) =>
+                      current.map((item, itemIndex) =>
+                        itemIndex === index
+                          ? {
+                              ...item,
+                              direction: value as SortDirection,
+                            }
+                          : item,
+                      ),
+                    )
+                  }
+                  options={groupDirectionOptions}
+                  placeholder=""
+                  className="h-8 rounded text-xs w-full min-w-0"
+                />
+              </div>
+
+              <div className="flex items-center gap-2 shrink-0 md:justify-self-end">
+                <Popover className="relative">
+                  <PopoverButton className="flex items-center justify-center h-9 w-9 rounded-lg cursor-pointer outline-none focus:outline-none focus-visible:outline-none hover:bg-slate-100 dark:hover:bg-slate-900">
+                    <Ellipsis size={16} />
+                  </PopoverButton>
+
+                  <PopoverPanel
+                    anchor="bottom end"
+                    className="w-72 max-w-[90vw] border border-slate-200 shadow-2xl bg-white rounded-xl p-2 backdrop-blur-md transition-colors dark:border-slate-600 dark:bg-slate-950/70 flex flex-col overflow-hidden"
+                  >
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowCounts(false);
+                      }}
+                      className="flex w-full cursor-pointer items-center justify-between px-4 py-3 text-left text-sm text-slate-700 transition hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-900"
+                    >
+                      <span>Hide record counts for groups</span>
+                      {!showCounts && (
+                        <Check
+                          size={16}
+                          className="text-slate-700 dark:text-slate-200"
+                        />
+                      )}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowCounts(true);
+                      }}
+                      className="flex w-full cursor-pointer items-center justify-between px-4 py-3 text-left text-sm text-slate-700 transition hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-900"
+                    >
+                      <span>Show record counts for groups</span>
+                      {showCounts && (
+                        <Check
+                          size={16}
+                          className="text-slate-700 dark:text-slate-200"
+                        />
+                      )}
+                    </button>
+                  </PopoverPanel>
+                </Popover>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    setGroupRules((current) =>
+                      current.filter((_, itemIndex) => itemIndex !== index),
+                    )
+                  }
+                  className="flex items-center cursor-pointer justify-center h-9 w-9 rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:text-slate-500 dark:hover:bg-slate-900 dark:hover:text-slate-200"
+                  aria-label="Remove group"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+            </div>
+          ))}
+
+          {groupRules.length === 0 && (
+            <div className="grid w-full min-w-0 gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] md:items-center">
+              <div className="min-w-0 flex-1">
+                <Select
+                  value=""
+                  onChange={(value) =>
+                    setGroupRules(
+                      value ? [{ field: value as string, direction: "asc" }] : [],
+                    )
+                  }
+                  options={selectableColumns}
+                  placeholder=""
+                  className="h-8 rounded text-xs w-full min-w-0"
+                />
+              </div>
+
+              <div className="min-w-0 flex-1">
+                <Select
+                  value="asc"
+                  onChange={(value) =>
+                    setGroupRules((current) =>
+                      current.length === 0
+                        ? current
+                        : current.map((item, itemIndex) =>
+                            itemIndex === 0
+                              ? {
+                                  ...item,
+                                  direction: value as SortDirection,
+                                }
+                              : item,
+                          ),
+                    )
+                  }
+                  options={groupDirectionOptions}
+                  placeholder=""
+                  className="h-8 rounded text-xs w-full min-w-0"
+                />
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="mt-3 max-h-[40vh] space-y-1 overflow-y-auto overflow-x-hidden border-t border-slate-200 pt-3 dark:border-slate-800">
+          <button
+            type="button"
+            onClick={() => setGroupRules([])}
+            className={clsx(
+              "cursor-pointer flex w-full min-w-0 items-center rounded px-3 py-2 text-left text-sm transition",
+              "text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-900",
+              groupRules.length === 0 &&
+                "bg-slate-100 font-medium dark:bg-slate-900",
+            )}
+          >
+            <span className="truncate">No grouping</span>
+          </button>
+          {selectableColumns.map((column) => (
+            <button
+              key={column.value}
+              type="button"
+              onClick={() =>
+                setGroupRules((current) =>
+                  current.some((item) => item.field === column.value)
+                    ? current
+                    : [...current, { field: column.value, direction: "asc" }],
+                )
+              }
+              className={clsx(
+                "flex w-full min-w-0 items-center rounded px-3 py-2 text-left text-sm transition",
+                "text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-900",
+                groupRules.some((item) => item.field === column.value) &&
+                  "bg-slate-100 font-medium dark:bg-slate-900",
+              )}
+            >
+              <span className="truncate">{column.label}</span>
+            </button>
+          ))}
+        </div>
+      </PopoverPanel>
+    </Popover>
+  );
+}
+
+function FilterConditionRow({
+  condition,
+  connectorLabel,
+  onChange,
+  onRemove,
+  selectableColumns,
+}: {
+  condition: FilterCondition;
+  connectorLabel: string;
+  onChange: (condition: FilterCondition) => void;
+  onRemove: () => void;
+  selectableColumns: SelectOption[];
+}) {
+  return (
+    <div
+      key={condition.id}
+      className="grid gap-2 md:grid-cols-[auto_1fr_1fr_1.3fr_auto] md:items-center"
+    >
+      <span className="px-2 text-sm font-medium text-slate-600 dark:text-slate-300">
+        {connectorLabel}
+      </span>
+
+      <Select
+        value={condition.field}
+        onChange={(value) =>
+          onChange({ ...condition, field: value as string, value: "" })
+        }
+        options={selectableColumns}
+        placeholder=""
+        className="h-10 rounded text-sm"
+        floatingOptions
+      />
+
+      <Select
+        value={condition.operator}
+        onChange={(value) => {
+          const operator = value as FilterOperator;
+          onChange({
+            ...condition,
+            operator,
+            value: operatorNeedsValue(operator) ? condition.value : "",
+          });
+        }}
+        options={filterOperatorOptions}
+        placeholder=""
+        className="h-10 rounded text-sm"
+        floatingOptions
+      />
+
+      {!operatorNeedsValue(condition.operator) ? (
+        <div className="flex h-10 items-center rounded-lg border border-dashed border-slate-200 px-3 text-sm text-slate-400 dark:border-slate-700 dark:text-slate-500">
+          No value needed
+        </div>
+      ) : (
+        <Input
+          value={condition.value}
+          onChange={(event) =>
+            onChange({ ...condition, value: event.target.value })
+          }
+          placeholder="Enter a value"
+          className="h-10 rounded border bg-white px-4 py-2 text-sm text-slate-900 placeholder:text-slate-400 transition focus:border-indigo-500 focus:outline-none dark:bg-gray-800 dark:text-gray-100 dark:placeholder:text-gray-500"
+        />
+      )}
+
+      <button
+        type="button"
+        onClick={onRemove}
+        className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:text-slate-500 dark:hover:bg-slate-900 dark:hover:text-slate-200"
+        aria-label="Remove condition"
+      >
+        <Trash2 size={16} />
+      </button>
+    </div>
+  );
+}
+
+function FilterPopover({
+  activeFilterConditionCount,
+  filterItems,
+  rootFilterGate,
+  selectableColumns,
+  setFilterItems,
+  setFilterSearch,
+  setRootFilterGate,
+}: {
+  activeFilterConditionCount: number;
+  filterItems: FilterItem[];
+  rootFilterGate: FilterGate;
+  selectableColumns: SelectOption[];
+  setFilterItems: React.Dispatch<React.SetStateAction<FilterItem[]>>;
+  setFilterSearch: React.Dispatch<React.SetStateAction<string>>;
+  setRootFilterGate: React.Dispatch<React.SetStateAction<FilterGate>>;
+}) {
+  const updateFilterItemCondition = (
+    itemId: string,
+    updater: (condition: FilterCondition) => FilterCondition,
+  ) => {
+    setFilterItems((items) =>
+      items.map((item) =>
+        item.id === itemId && item.type === "condition"
+          ? { ...item, condition: updater(item.condition) }
+          : item,
+      ),
+    );
+  };
+
+  const updateFilterGroupCondition = (
+    groupId: string,
+    conditionId: string,
+    updater: (condition: FilterCondition) => FilterCondition,
+  ) => {
+    setFilterItems((items) =>
+      items.map((item) =>
+        item.id === groupId && item.type === "group"
+          ? {
+              ...item,
+              conditions: item.conditions.map((condition) =>
+                condition.id === conditionId ? updater(condition) : condition,
+              ),
+            }
+          : item,
+      ),
+    );
+  };
+
+  return (
+    <Popover className="relative">
+      <PopoverButton className={toolbarButtonClass}>
+        Filter
+        <ToolbarCount count={activeFilterConditionCount} />
+      </PopoverButton>
+
+      <PopoverPanel
+        anchor="bottom end"
+        className="w-screen md:w-2xl border border-slate-200 shadow-2xl bg-white rounded-xl p-2 backdrop-blur-md transition-colors dark:border-slate-600 dark:bg-slate-950/70 flex flex-col overflow-visible"
+      >
+        <div className="flex flex-col gap-4">
+          <div className="space-y-2">
+            {filterItems.length === 0 && (
+              <div className="rounded-xl border border-dashed border-slate-300 px-4 py-5 text-sm text-slate-500 dark:border-slate-700 dark:text-slate-400">
+                No conditions yet. Add one below.
+              </div>
+            )}
+
+            {filterItems.map((item, itemIndex) => {
+              const rootConnector = itemIndex === 0 ? "Where" : rootFilterGate;
+
+              if (item.type === "condition") {
+                return (
+                  <FilterConditionRow
+                    key={item.id}
+                    condition={item.condition}
+                    connectorLabel={rootConnector}
+                    onChange={(condition) =>
+                      updateFilterItemCondition(item.id, () => condition)
+                    }
+                    onRemove={() =>
+                      setFilterItems((items) =>
+                        items.filter((candidate) => candidate.id !== item.id),
+                      )
+                    }
+                    selectableColumns={selectableColumns}
+                  />
+                );
+              }
+
+              return (
+                <div
+                  key={item.id}
+                  className="space-y-3 rounded-xl border border-slate-200 p-3 dark:border-slate-800"
+                >
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="px-2 text-sm font-medium text-slate-600 dark:text-slate-300">
+                        {rootConnector}
+                      </span>
+                      <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+                        Condition group
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setFilterItems((items) =>
+                            items.filter(
+                              (candidate) => candidate.id !== item.id,
+                            ),
+                          )
+                        }
+                        className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:text-slate-500 dark:hover:bg-slate-900 dark:hover:text-slate-200"
+                        aria-label="Remove condition group"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    {item.conditions.map((condition, conditionIndex) => (
+                      <FilterConditionRow
+                        key={condition.id}
+                        condition={condition}
+                        connectorLabel={
+                          conditionIndex === 0 ? "Where" : item.gate
+                        }
+                        onChange={(nextCondition) =>
+                          updateFilterGroupCondition(
+                            item.id,
+                            condition.id,
+                            () => nextCondition,
+                          )
+                        }
+                        onRemove={() =>
+                          setFilterItems((items) =>
+                            item.conditions.length <= 1
+                              ? items.filter(
+                                  (candidate) => candidate.id !== item.id,
+                                )
+                              : items.map((candidate) =>
+                                  candidate.id === item.id &&
+                                  candidate.type === "group"
+                                    ? {
+                                        ...candidate,
+                                        conditions:
+                                          candidate.conditions.filter(
+                                            (groupCondition) =>
+                                              groupCondition.id !==
+                                              condition.id,
+                                          ),
+                                      }
+                                    : candidate,
+                                ),
+                          )
+                        }
+                        selectableColumns={selectableColumns}
+                      />
+                    ))}
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setFilterItems((items) =>
+                        items.map((candidate) =>
+                          candidate.id === item.id && candidate.type === "group"
+                            ? {
+                                ...candidate,
+                                conditions: [
+                                  ...candidate.conditions,
+                                  createFilterCondition(
+                                    selectableColumns[0]?.value ?? "",
+                                  ),
+                                ],
+                              }
+                            : candidate,
+                        ),
+                      )
+                    }
+                    className="inline-flex cursor-pointer items-center gap-2 text-sm font-medium text-slate-600 hover:text-sky-700 dark:text-slate-300 dark:hover:text-sky-300"
+                  >
+                    <Plus size={16} />
+                    Add condition to group
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="flex flex-wrap items-center gap-4 text-sm">
+            <button
+              type="button"
+              onClick={() =>
+                setFilterItems((items) => [
+                  ...items,
+                  createFilterItem(selectableColumns[0]?.value ?? ""),
+                ])
+              }
+              className="inline-flex items-center cursor-pointer gap-2 font-medium text-slate-600 hover:text-sky-700 dark:text-slate-300 dark:hover:text-sky-300"
+            >
+              <Plus size={16} />
+              Add condition
+            </button>
+
+            <button
+              type="button"
+              onClick={() =>
+                setFilterItems((items) => [
+                  ...items,
+                  createFilterGroup(selectableColumns[0]?.value ?? ""),
+                ])
+              }
+              className="font-medium text-slate-500 cursor-pointer hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
+            >
+              Add condition group
+            </button>
+
+            <button
+              type="button"
+              onClick={() => {
+                setFilterSearch("");
+                setRootFilterGate("AND");
+                setFilterItems([]);
+              }}
+              className="font-medium text-slate-500 cursor-pointer hover:text-rose-600 dark:text-slate-400 dark:hover:text-rose-300"
+            >
+              Reset
+            </button>
+          </div>
+        </div>
+      </PopoverPanel>
+    </Popover>
+  );
+}
+
+function SortPopover({
+  selectableColumns,
+  setSortRules,
+  sortRules,
+}: {
+  selectableColumns: SelectOption[];
+  setSortRules: React.Dispatch<React.SetStateAction<SortRule[]>>;
+  sortRules: SortRule[];
+}) {
+  return (
+    <Popover className="relative">
+      <PopoverButton className={toolbarButtonClass}>
+        Sort
+        <ToolbarCount count={sortRules.length} />
+      </PopoverButton>
+
+      <PopoverPanel
+        anchor="bottom end"
+        className="w-screen md:w-2xl border border-slate-200 shadow-2xl bg-white rounded-xl p-2 backdrop-blur-md transition-colors dark:border-slate-600 dark:bg-slate-950/70 flex flex-col overflow-hidden"
+      >
+        <div className="space-y-3">
+          {sortRules.map((sortRule, index) => (
+            <div
+              key={`${sortRule.field}-${index}`}
+              className="grid w-full min-w-0 gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] md:items-center"
+            >
+              <div className="min-w-0 flex-1">
+                <Select
+                  value={sortRule.field}
+                  onChange={(value) =>
+                    setSortRules((current) =>
+                      current.map((item, itemIndex) =>
+                        itemIndex === index
+                          ? { ...item, field: value as string }
+                          : item,
+                      ),
+                    )
+                  }
+                  options={selectableColumns}
+                  placeholder=""
+                  className="h-8 rounded text-xs w-full min-w-0"
+                />
+              </div>
+
+              <div className="min-w-0 flex-1">
+                <Select
+                  value={sortRule.direction}
+                  onChange={(value) =>
+                    setSortRules((current) =>
+                      current.map((item, itemIndex) =>
+                        itemIndex === index
+                          ? { ...item, direction: value as SortDirection }
+                          : item,
+                      ),
+                    )
+                  }
+                  options={sortDirectionOptions}
+                  placeholder=""
+                  className="h-8 rounded text-xs w-full min-w-0"
+                />
+              </div>
+
+              <div className="flex items-center gap-2 shrink-0 md:justify-self-end">
+                <button
+                  type="button"
+                  onClick={() =>
+                    setSortRules((current) =>
+                      current.filter((_, itemIndex) => itemIndex !== index),
+                    )
+                  }
+                  className="flex items-center justify-center h-9 w-9 rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:text-slate-500 dark:hover:bg-slate-900 dark:hover:text-slate-200 cursor-pointer"
+                  aria-label="Remove sort"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+            </div>
+          ))}
+
+          {sortRules.length === 0 && (
+            <div className="grid w-full min-w-0 gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] md:items-center">
+              <div className="min-w-0 flex-1">
+                <Select
+                  value=""
+                  onChange={(value) =>
+                    setSortRules(value ? [createSortRule(value as string)] : [])
+                  }
+                  options={selectableColumns}
+                  placeholder=""
+                  className="h-8 rounded text-xs w-full min-w-0"
+                />
+              </div>
+
+              <div className="min-w-0 flex-1">
+                <Select
+                  value="asc"
+                  onChange={(value) =>
+                    setSortRules((current) =>
+                      current.length === 0
+                        ? current
+                        : current.map((item, itemIndex) =>
+                            itemIndex === 0
+                              ? { ...item, direction: value as SortDirection }
+                              : item,
+                          ),
+                    )
+                  }
+                  options={sortDirectionOptions}
+                  placeholder=""
+                  className="h-8 rounded text-xs w-full min-w-0"
+                />
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="mt-3 max-h-[40vh] space-y-1 overflow-y-auto overflow-x-hidden border-t border-slate-200 pt-3 dark:border-slate-800">
+          <button
+            type="button"
+            onClick={() => setSortRules([])}
+            className={clsx(
+              "flex w-full min-w-0 items-center rounded px-3 py-2 text-left text-sm transition cursor-pointer",
+              "text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-900",
+              sortRules.length === 0 &&
+                "bg-slate-100 font-medium dark:bg-slate-900",
+            )}
+          >
+            <span className="truncate">No sort</span>
+          </button>
+          {selectableColumns.map((column) => (
+            <button
+              key={column.value}
+              type="button"
+              onClick={() =>
+                setSortRules((current) =>
+                  current.some((item) => item.field === column.value)
+                    ? current
+                    : [...current, createSortRule(column.value)],
+                )
+              }
+              className={clsx(
+                "flex w-full min-w-0 items-center rounded px-3 py-2 text-left text-sm transition cursor-pointer",
+                "text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-900",
+                sortRules.some((item) => item.field === column.value) &&
+                  "bg-slate-100 font-medium dark:bg-slate-900",
+              )}
+            >
+              <span className="truncate">{column.label}</span>
+            </button>
+          ))}
+        </div>
+      </PopoverPanel>
+    </Popover>
+  );
+}
+
+function TableSearch({
+  filterSearch,
+  isSearchOpen,
+  onCloseSearch,
+  setFilterSearch,
+  setIsSearchOpen,
+}: {
+  filterSearch: string;
+  isSearchOpen: boolean;
+  onCloseSearch: () => void;
+  setFilterSearch: React.Dispatch<React.SetStateAction<string>>;
+  setIsSearchOpen: React.Dispatch<React.SetStateAction<boolean>>;
+}) {
+  if (isSearchOpen) {
+    return (
+      <div className="relative w-72">
+        <Search
+          size={15}
+          className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500"
+        />
+        <input
+          type="text"
+          value={filterSearch}
+          onChange={(event) => setFilterSearch(event.target.value)}
+          placeholder="Search in table"
+          className="h-9 w-full rounded-xl border border-slate-300 bg-white py-2 pl-9 pr-10 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-sky-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500"
+        />
+        <button
+          type="button"
+          onClick={onCloseSearch}
+          className="absolute right-2 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-md text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:text-slate-500 dark:hover:bg-slate-800 dark:hover:text-slate-200 cursor-pointer"
+          aria-label="Close search"
+        >
+          <X size={14} />
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={() => setIsSearchOpen(true)}
+      className={toolbarIconButtonClass}
+      aria-label="Open search"
+    >
+      <Search size={15} />
+    </button>
+  );
+}
+
+function ExtraActionsPopover({
+  onExportSvg,
+  onPrintData,
+  onPrintPage,
+}: {
+  onExportSvg: () => void;
+  onPrintData: () => void;
+  onPrintPage: () => void;
+}) {
+  return (
+    <Popover className="relative">
+      <PopoverButton className={toolbarIconButtonClass}>
+        <Ellipsis size={16} />
+      </PopoverButton>
+
+      <PopoverPanel
+        anchor="bottom end"
+        className="w-56 border border-slate-200 shadow-2xl bg-white rounded-xl p-2 backdrop-blur-md transition-colors dark:border-slate-600 dark:bg-slate-950/70 flex flex-col overflow-hidden"
+      >
+        <button
+          type="button"
+          onClick={onPrintPage}
+          className="flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-slate-700 transition hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-900"
+        >
+          <Printer size={16} />
+          <span>Print the page</span>
+        </button>
+        <button
+          type="button"
+          onClick={onPrintData}
+          className="flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-slate-700 transition hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-900"
+        >
+          <Printer size={16} />
+          <span>Print the data</span>
+        </button>
+        <button
+          type="button"
+          onClick={onExportSvg}
+          className="flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-slate-700 transition hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-900"
+        >
+          <FileDown size={16} />
+          <span>Export the data as CSV</span>
+        </button>
+      </PopoverPanel>
+    </Popover>
+  );
+}
+
+function TableToolbar({
+  activeFilterConditionCount,
+  description,
+  filterItems,
+  filterSearch,
+  groupRules,
+  isSearchOpen,
+  onCloseSearch,
+  onExportSvg,
+  onPrintData,
+  onPrintPage,
+  rootFilterGate,
+  selectableColumns,
+  setFilterItems,
+  setFilterSearch,
+  setGroupRules,
+  setIsSearchOpen,
+  setRootFilterGate,
+  setShowCounts,
+  setSortRules,
+  showExtraActions,
+  showFilters,
+  showGrouping,
+  showCounts,
+  showSearch,
+  showSorting,
+  sortRules,
+  title,
+}: {
+  activeFilterConditionCount: number;
+  description?: string;
+  filterItems: FilterItem[];
+  filterSearch: string;
+  groupRules: GroupRule[];
+  isSearchOpen: boolean;
+  onCloseSearch: () => void;
+  onExportSvg: () => void;
+  onPrintData: () => void;
+  onPrintPage: () => void;
+  rootFilterGate: FilterGate;
+  selectableColumns: SelectOption[];
+  setFilterItems: React.Dispatch<React.SetStateAction<FilterItem[]>>;
+  setFilterSearch: React.Dispatch<React.SetStateAction<string>>;
+  setGroupRules: React.Dispatch<React.SetStateAction<GroupRule[]>>;
+  setIsSearchOpen: React.Dispatch<React.SetStateAction<boolean>>;
+  setRootFilterGate: React.Dispatch<React.SetStateAction<FilterGate>>;
+  setShowCounts: React.Dispatch<React.SetStateAction<boolean>>;
+  setSortRules: React.Dispatch<React.SetStateAction<SortRule[]>>;
+  showExtraActions: boolean;
+  showFilters: boolean;
+  showGrouping: boolean;
+  showCounts: boolean;
+  showSearch: boolean;
+  showSorting: boolean;
+  sortRules: SortRule[];
+  title: string;
+}) {
+  return (
+    <div className="flex items-center justify-center md:justify-between mb-2 border-b border-slate-200/80 bg-white/75 px-8 backdrop-blur-md transition-colors dark:border-slate-600 dark:bg-slate-950/70">
+      <div className="min-w-0 py-2 hidden md:block">
+        <h3 className="truncate text-base font-semibold text-slate-900 dark:text-slate-100">
+          {title}
+        </h3>
+        <p className="truncate text-xs text-slate-500 dark:text-slate-400">
+          {description}
+        </p>
+      </div>
+      <div className="flex items-center justify-end gap-2">
+        {showGrouping && (
+          <GroupPopover
+            groupRules={groupRules}
+            selectableColumns={selectableColumns}
+            setGroupRules={setGroupRules}
+            setShowCounts={setShowCounts}
+            showCounts={showCounts}
+          />
+        )}
+        {showFilters && (
+          <FilterPopover
+            activeFilterConditionCount={activeFilterConditionCount}
+            filterItems={filterItems}
+            rootFilterGate={rootFilterGate}
+            selectableColumns={selectableColumns}
+            setFilterItems={setFilterItems}
+            setFilterSearch={setFilterSearch}
+            setRootFilterGate={setRootFilterGate}
+          />
+        )}
+        {showSorting && (
+          <SortPopover
+            selectableColumns={selectableColumns}
+            setSortRules={setSortRules}
+            sortRules={sortRules}
+          />
+        )}
+        {showSearch && (
+          <TableSearch
+            filterSearch={filterSearch}
+            isSearchOpen={isSearchOpen}
+            onCloseSearch={onCloseSearch}
+            setFilterSearch={setFilterSearch}
+            setIsSearchOpen={setIsSearchOpen}
+          />
+        )}
+        {showExtraActions && (
+          <ExtraActionsPopover
+            onExportSvg={onExportSvg}
+            onPrintData={onPrintData}
+            onPrintPage={onPrintPage}
+          />
+        )}
+      </div>
+    </div>
+  );
+}
+
 export function Table<T>({
   data,
   columns,
@@ -165,13 +1114,14 @@ export function Table<T>({
   emptyState,
   showTableWhenEmpty = false,
   onRowClick,
+  showGrouping = true,
+  showFilters = true,
+  showSorting = true,
+  showSearch = true,
+  showExtraActions = true,
 }: Props<T>) {
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
   const tableElementRef = useRef<HTMLTableElement | null>(null);
-  const toolbarButtonClass =
-    "flex h-9 cursor-pointer items-center justify-center rounded-xl px-3 text-sm text-slate-700 transition hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-900";
-  const toolbarIconButtonClass =
-    "flex h-9 w-9 cursor-pointer items-center justify-center rounded-xl text-slate-700 transition hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-900";
   const [groupRules, setGroupRules] = useState<GroupRule[]>([]);
   const [sortRules, setSortRules] = useState<SortRule[]>([]);
   const [showCounts, setShowCounts] = useState(true);
@@ -199,14 +1149,18 @@ export function Table<T>({
     page: 1,
     contextKey: "",
   });
+  const effectiveFilterSearch = showSearch ? filterSearch : "";
+  const effectiveFilterItems = showFilters ? filterItems : emptyFilterItems;
+  const effectiveSortRules = showSorting ? sortRules : emptySortRules;
+  const effectiveGroupRules = showGrouping ? groupRules : emptyGroupRules;
   const filteredData = useMemo(() => {
     return data.filter((row) => {
-      const searchMatches = !filterSearch.trim()
+      const searchMatches = !effectiveFilterSearch.trim()
         ? true
         : columns.some((column) =>
             String(getCellValue(row, column) ?? "")
               .toLowerCase()
-              .includes(filterSearch.trim().toLowerCase()),
+              .includes(effectiveFilterSearch.trim().toLowerCase()),
           );
 
       if (!searchMatches) {
@@ -239,7 +1193,7 @@ export function Table<T>({
                   : value.trim() !== "";
       };
 
-      const activeItems = filterItems
+      const activeItems = effectiveFilterItems
         .map((item) => {
           if (item.type === "condition") {
             return isActiveCondition(item.condition)
@@ -277,9 +1231,16 @@ export function Table<T>({
         ? activeItems.every((item) => item.matches)
         : activeItems.some((item) => item.matches);
     });
-  }, [columnMap, columns, data, filterItems, filterSearch, rootFilterGate]);
+  }, [
+    columnMap,
+    columns,
+    data,
+    effectiveFilterItems,
+    effectiveFilterSearch,
+    rootFilterGate,
+  ]);
   const processedData = useMemo(() => {
-    const activeSortRules = sortRules.filter((rule) => rule.field);
+    const activeSortRules = effectiveSortRules.filter((rule) => rule.field);
 
     if (activeSortRules.length === 0) {
       return filteredData;
@@ -304,9 +1265,9 @@ export function Table<T>({
 
       return 0;
     });
-  }, [columnMap, filteredData, sortRules]);
+  }, [columnMap, effectiveSortRules, filteredData]);
   const groupedData = useMemo<GroupNode<T>[] | null>(() => {
-    const activeGroupRules = groupRules.filter((rule) => rule.field);
+    const activeGroupRules = effectiveGroupRules.filter((rule) => rule.field);
 
     if (activeGroupRules.length === 0) {
       return null;
@@ -369,15 +1330,15 @@ export function Table<T>({
     };
 
     return buildGroups(processedData, 0);
-  }, [columnMap, groupRules, processedData]);
+  }, [columnMap, effectiveGroupRules, processedData]);
   const paginationContextKey = useMemo(
     () =>
       JSON.stringify({
-        filterSearch,
-        filterItems,
+        filterSearch: effectiveFilterSearch,
+        filterItems: effectiveFilterItems,
         rootFilterGate,
-        sortRules,
-        groupRules,
+        sortRules: effectiveSortRules,
+        groupRules: effectiveGroupRules,
         rowsPerPage,
         dataLength: data.length,
         columnKeys: columns.map((column) => String(column.key)),
@@ -385,12 +1346,12 @@ export function Table<T>({
     [
       columns,
       data.length,
-      filterItems,
-      filterSearch,
-      groupRules,
+      effectiveFilterItems,
+      effectiveFilterSearch,
+      effectiveGroupRules,
+      effectiveSortRules,
       rootFilterGate,
       rowsPerPage,
-      sortRules,
     ],
   );
   const totalPages = Math.max(1, Math.ceil(processedData.length / rowsPerPage));
@@ -631,128 +1592,13 @@ export function Table<T>({
         (!operatorNeedsValue(condition.operator) || condition.value.trim()),
     );
 
-  const activeFilterConditionCount = filterItems.reduce((count, item) => {
+  const activeFilterConditionCount = effectiveFilterItems.reduce((count, item) => {
     if (item.type === "condition") {
       return count + Number(isFilterConditionActive(item.condition));
     }
 
     return count + item.conditions.filter(isFilterConditionActive).length;
-  }, Number(Boolean(filterSearch.trim())));
-
-  const filterOperatorOptions = [
-    { label: "contains", value: "contains" },
-    { label: "does not contain", value: "does_not_contain" },
-    { label: "is", value: "is" },
-    { label: "is not", value: "is_not" },
-    { label: "is empty", value: "is_empty" },
-    { label: "is not empty", value: "is_not_empty" },
-  ];
-
-  const updateFilterItemCondition = (
-    itemId: string,
-    updater: (condition: FilterCondition) => FilterCondition,
-  ) => {
-    setFilterItems((items) =>
-      items.map((item) =>
-        item.id === itemId && item.type === "condition"
-          ? { ...item, condition: updater(item.condition) }
-          : item,
-      ),
-    );
-  };
-
-  const updateFilterGroupCondition = (
-    groupId: string,
-    conditionId: string,
-    updater: (condition: FilterCondition) => FilterCondition,
-  ) => {
-    setFilterItems((items) =>
-      items.map((item) =>
-        item.id === groupId && item.type === "group"
-          ? {
-              ...item,
-              conditions: item.conditions.map((condition) =>
-                condition.id === conditionId ? updater(condition) : condition,
-              ),
-            }
-          : item,
-      ),
-    );
-  };
-
-  const renderFilterConditionRow = ({
-    condition,
-    connectorLabel,
-    onChange,
-    onRemove,
-  }: {
-    condition: FilterCondition;
-    connectorLabel: string;
-    onChange: (condition: FilterCondition) => void;
-    onRemove: () => void;
-  }) => {
-    return (
-      <div
-        key={condition.id}
-        className="grid gap-2 md:grid-cols-[auto_1fr_1fr_1.3fr_auto] md:items-center"
-      >
-        <span className="px-2 text-sm font-medium text-slate-600 dark:text-slate-300">
-          {connectorLabel}
-        </span>
-
-        <Select
-          value={condition.field}
-          onChange={(value) =>
-            onChange({ ...condition, field: value as string, value: "" })
-          }
-          options={selectableColumns}
-          placeholder=""
-          className="h-10 rounded text-sm"
-          floatingOptions
-        />
-
-        <Select
-          value={condition.operator}
-          onChange={(value) => {
-            const operator = value as FilterOperator;
-            onChange({
-              ...condition,
-              operator,
-              value: operatorNeedsValue(operator) ? condition.value : "",
-            });
-          }}
-          options={filterOperatorOptions}
-          placeholder=""
-          className="h-10 rounded text-sm"
-          floatingOptions
-        />
-
-        {!operatorNeedsValue(condition.operator) ? (
-          <div className="flex h-10 items-center rounded-lg border border-dashed border-slate-200 px-3 text-sm text-slate-400 dark:border-slate-700 dark:text-slate-500">
-            No value needed
-          </div>
-        ) : (
-          <Input
-            value={condition.value}
-            onChange={(event) =>
-              onChange({ ...condition, value: event.target.value })
-            }
-            placeholder="Enter a value"
-            className="h-10 rounded border bg-white px-4 py-2 text-sm text-slate-900 placeholder:text-slate-400 transition focus:border-indigo-500 focus:outline-none dark:bg-gray-800 dark:text-gray-100 dark:placeholder:text-gray-500"
-          />
-        )}
-
-        <button
-          type="button"
-          onClick={onRemove}
-          className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:text-slate-500 dark:hover:bg-slate-900 dark:hover:text-slate-200"
-          aria-label="Remove condition"
-        >
-          <Trash2 size={16} />
-        </button>
-      </div>
-    );
-  };
+  }, Number(Boolean(effectiveFilterSearch.trim())));
 
   if (isLoading) {
     return (
@@ -777,635 +1623,35 @@ export function Table<T>({
 
   return (
     <div>
-      <div className="flex items-center justify-center md:justify-between mb-2 border-b border-slate-200/80 bg-white/75 px-8 backdrop-blur-md transition-colors dark:border-slate-600 dark:bg-slate-950/70">
-        <div className="min-w-0 py-2 hidden md:block">
-          <h3 className="truncate text-base font-semibold text-slate-900 dark:text-slate-100">
-            {title}
-          </h3>
-          <p className="truncate text-xs text-slate-500 dark:text-slate-400">
-            {description}
-          </p>
-        </div>
-        <div className="flex items-center justify-end gap-2">
-          <Popover className="relative">
-            <PopoverButton className={toolbarButtonClass}>
-              Group
-              {groupRules.length > 0 && (
-                <span className="ml-1 inline-flex min-w-5 items-center justify-center rounded-md bg-slate-800 px-1.5 py-0.5 text-[11px] font-semibold text-white">
-                  {groupRules.length}
-                </span>
-              )}
-            </PopoverButton>
-
-            <PopoverPanel
-              anchor="bottom end"
-              className="w-screen md:w-2xl border border-slate-200 shadow-2xl bg-white rounded-xl p-2 backdrop-blur-md transition-colors dark:border-slate-600 dark:bg-slate-950/70 flex flex-col overflow-visible"
-            >
-              <div className="space-y-3">
-                {groupRules.map((groupRule, index) => (
-                  <div
-                    key={`${groupRule.field}-${index}`}
-                    className="grid w-full min-w-0 gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] md:items-center"
-                  >
-                    <div className="min-w-0 flex-1">
-                      <Select
-                        value={groupRule.field}
-                        onChange={(value) =>
-                          setGroupRules((current) =>
-                            current.map((item, itemIndex) =>
-                              itemIndex === index
-                                ? { ...item, field: value as string }
-                                : item,
-                            ),
-                          )
-                        }
-                        options={selectableColumns}
-                        placeholder=""
-                        className="h-8 rounded text-xs w-full min-w-0"
-                      />
-                    </div>
-
-                    <div className="min-w-0 flex-1">
-                      <Select
-                        value={groupRule.direction}
-                        onChange={(value) =>
-                          setGroupRules((current) =>
-                            current.map((item, itemIndex) =>
-                              itemIndex === index
-                                ? {
-                                    ...item,
-                                    direction: value as SortDirection,
-                                  }
-                                : item,
-                            ),
-                          )
-                        }
-                        options={[
-                          { label: "First to Last", value: "asc" },
-                          { label: "Last to First", value: "desc" },
-                        ]}
-                        placeholder=""
-                        className="h-8 rounded text-xs w-full min-w-0"
-                      />
-                    </div>
-
-                    <div className="flex items-center gap-2 shrink-0 md:justify-self-end">
-                      <Popover className="relative">
-                        <PopoverButton className="flex items-center justify-center h-9 w-9 rounded-lg outline-0 ring-0 cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-900">
-                          <Ellipsis size={16} />
-                        </PopoverButton>
-
-                        <PopoverPanel
-                          anchor="bottom end"
-                          className="w-72 max-w-[90vw] border border-slate-200 shadow-2xl bg-white rounded-xl p-2 backdrop-blur-md transition-colors dark:border-slate-600 dark:bg-slate-950/70 flex flex-col overflow-hidden"
-                        >
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setShowCounts(false);
-                            }}
-                            className="flex w-full cursor-pointer items-center justify-between px-4 py-3 text-left text-sm text-slate-700 transition hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-900"
-                          >
-                            <span>Hide record counts for groups</span>
-                            {!showCounts && (
-                              <Check
-                                size={16}
-                                className="text-slate-700 dark:text-slate-200"
-                              />
-                            )}
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setShowCounts(true);
-                            }}
-                            className="flex w-full cursor-pointer items-center justify-between px-4 py-3 text-left text-sm text-slate-700 transition hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-900"
-                          >
-                            <span>Show record counts for groups</span>
-                            {showCounts && (
-                              <Check
-                                size={16}
-                                className="text-slate-700 dark:text-slate-200"
-                              />
-                            )}
-                          </button>
-                        </PopoverPanel>
-                      </Popover>
-
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setGroupRules((current) =>
-                            current.filter(
-                              (_, itemIndex) => itemIndex !== index,
-                            ),
-                          )
-                        }
-                        className="flex items-center cursor-pointer justify-center h-9 w-9 rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:text-slate-500 dark:hover:bg-slate-900 dark:hover:text-slate-200"
-                        aria-label="Remove group"
-                      >
-                        <X size={16} />
-                      </button>
-                    </div>
-                  </div>
-                ))}
-
-                {groupRules.length === 0 && (
-                  <div className="grid w-full min-w-0 gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] md:items-center">
-                    <div className="min-w-0 flex-1">
-                      <Select
-                        value=""
-                        onChange={(value) =>
-                          setGroupRules(
-                            value
-                              ? [{ field: value as string, direction: "asc" }]
-                              : [],
-                          )
-                        }
-                        options={selectableColumns}
-                        placeholder=""
-                        className="h-8 rounded text-xs w-full min-w-0"
-                      />
-                    </div>
-
-                    <div className="min-w-0 flex-1">
-                      <Select
-                        value="asc"
-                        onChange={(value) =>
-                          setGroupRules((current) =>
-                            current.length === 0
-                              ? current
-                              : current.map((item, itemIndex) =>
-                                  itemIndex === 0
-                                    ? {
-                                        ...item,
-                                        direction: value as SortDirection,
-                                      }
-                                    : item,
-                                ),
-                          )
-                        }
-                        options={[
-                          { label: "First to Last", value: "asc" },
-                          { label: "Last to First", value: "desc" },
-                        ]}
-                        placeholder=""
-                        className="h-8 rounded text-xs w-full min-w-0"
-                      />
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <div className="mt-3 max-h-[40vh] space-y-1 overflow-y-auto overflow-x-hidden border-t border-slate-200 pt-3 dark:border-slate-800">
-                <button
-                  type="button"
-                  onClick={() => setGroupRules([])}
-                  className={clsx(
-                    "cursor-pointer flex w-full min-w-0 items-center rounded px-3 py-2 text-left text-sm transition",
-                    "text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-900",
-                    groupRules.length === 0 &&
-                      "bg-slate-100 font-medium dark:bg-slate-900",
-                  )}
-                >
-                  <span className="truncate">No grouping</span>
-                </button>
-                {selectableColumns.map((column) => (
-                  <button
-                    key={column.value}
-                    type="button"
-                    onClick={() =>
-                      setGroupRules((current) =>
-                        current.some((item) => item.field === column.value)
-                          ? current
-                          : [
-                              ...current,
-                              { field: column.value, direction: "asc" },
-                            ],
-                      )
-                    }
-                    className={clsx(
-                      "flex w-full min-w-0 items-center rounded px-3 py-2 text-left text-sm transition",
-                      "text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-900",
-                      groupRules.some((item) => item.field === column.value) &&
-                        "bg-slate-100 font-medium dark:bg-slate-900",
-                    )}
-                  >
-                    <span className="truncate">{column.label}</span>
-                  </button>
-                ))}
-              </div>
-            </PopoverPanel>
-          </Popover>
-          <Popover className="relative">
-            <PopoverButton className={toolbarButtonClass}>
-              Filter
-              {activeFilterConditionCount > 0 && (
-                <span className="ml-1 inline-flex min-w-5 items-center justify-center rounded-md bg-slate-800 px-1.5 py-0.5 text-[11px] font-semibold text-white">
-                  {activeFilterConditionCount}
-                </span>
-              )}
-            </PopoverButton>
-
-            <PopoverPanel
-              anchor="bottom end"
-              className="w-screen md:w-2xl border border-slate-200 shadow-2xl bg-white rounded-xl p-2 backdrop-blur-md transition-colors dark:border-slate-600 dark:bg-slate-950/70 flex flex-col overflow-visible"
-            >
-              <div className="flex flex-col gap-4">
-                <div className="space-y-2">
-                  {filterItems.length === 0 && (
-                    <div className="rounded-xl border border-dashed border-slate-300 px-4 py-5 text-sm text-slate-500 dark:border-slate-700 dark:text-slate-400">
-                      No conditions yet. Add one below.
-                    </div>
-                  )}
-
-                  {filterItems.map((item, itemIndex) => {
-                    const rootConnector =
-                      itemIndex === 0 ? "Where" : rootFilterGate;
-
-                    if (item.type === "condition") {
-                      return renderFilterConditionRow({
-                        condition: item.condition,
-                        connectorLabel: rootConnector,
-                        onChange: (condition) =>
-                          updateFilterItemCondition(item.id, () => condition),
-                        onRemove: () =>
-                          setFilterItems((items) =>
-                            items.filter((candidate) => candidate.id !== item.id),
-                          ),
-                      });
-                    }
-
-                    return (
-                      <div
-                        key={item.id}
-                        className="space-y-3 rounded-xl border border-slate-200 p-3 dark:border-slate-800"
-                      >
-                        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                          <div className="flex items-center gap-2">
-                            <span className="px-2 text-sm font-medium text-slate-600 dark:text-slate-300">
-                              {rootConnector}
-                            </span>
-                            <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">
-                              Condition group
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <button
-                              type="button"
-                              onClick={() =>
-                                setFilterItems((items) =>
-                                  items.filter(
-                                    (candidate) => candidate.id !== item.id,
-                                  ),
-                                )
-                              }
-                              className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:text-slate-500 dark:hover:bg-slate-900 dark:hover:text-slate-200"
-                              aria-label="Remove condition group"
-                            >
-                              <Trash2 size={16} />
-                            </button>
-                          </div>
-                        </div>
-
-                        <div className="space-y-2">
-                          {item.conditions.map((condition, conditionIndex) =>
-                            renderFilterConditionRow({
-                              condition,
-                              connectorLabel:
-                                conditionIndex === 0 ? "Where" : item.gate,
-                              onChange: (nextCondition) =>
-                                updateFilterGroupCondition(
-                                  item.id,
-                                  condition.id,
-                                  () => nextCondition,
-                                ),
-                              onRemove: () =>
-                                setFilterItems((items) =>
-                                  item.conditions.length <= 1
-                                    ? items.filter(
-                                        (candidate) =>
-                                          candidate.id !== item.id,
-                                      )
-                                    : items.map((candidate) =>
-                                        candidate.id === item.id &&
-                                        candidate.type === "group"
-                                          ? {
-                                              ...candidate,
-                                              conditions:
-                                                candidate.conditions.filter(
-                                                  (groupCondition) =>
-                                                    groupCondition.id !==
-                                                    condition.id,
-                                                ),
-                                            }
-                                          : candidate,
-                                      ),
-                                ),
-                            }),
-                          )}
-                        </div>
-
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setFilterItems((items) =>
-                              items.map((candidate) =>
-                                candidate.id === item.id &&
-                                candidate.type === "group"
-                                  ? {
-                                      ...candidate,
-                                      conditions: [
-                                        ...candidate.conditions,
-                                        createFilterCondition(
-                                          selectableColumns[0]?.value ?? "",
-                                        ),
-                                      ],
-                                    }
-                                  : candidate,
-                              ),
-                            )
-                          }
-                          className="inline-flex cursor-pointer items-center gap-2 text-sm font-medium text-slate-600 hover:text-sky-700 dark:text-slate-300 dark:hover:text-sky-300"
-                        >
-                          <Plus size={16} />
-                          Add condition to group
-                        </button>
-                      </div>
-                    );
-                  })}
-                </div>
-
-                <div className="flex flex-wrap items-center gap-4 text-sm">
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setFilterItems((items) => [
-                        ...items,
-                        createFilterItem(selectableColumns[0]?.value ?? ""),
-                      ])
-                    }
-                    className="inline-flex items-center cursor-pointer gap-2 font-medium text-slate-600 hover:text-sky-700 dark:text-slate-300 dark:hover:text-sky-300"
-                  >
-                    <Plus size={16} />
-                    Add condition
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setFilterItems((items) => [
-                        ...items,
-                        createFilterGroup(selectableColumns[0]?.value ?? ""),
-                      ])
-                    }
-                    className="font-medium text-slate-500 cursor-pointer hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
-                  >
-                    Add condition group
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setFilterSearch("");
-                      setRootFilterGate("AND");
-                      setFilterItems([]);
-                    }}
-                    className="font-medium text-slate-500 cursor-pointer hover:text-rose-600 dark:text-slate-400 dark:hover:text-rose-300"
-                  >
-                    Reset
-                  </button>
-                </div>
-              </div>
-            </PopoverPanel>
-          </Popover>
-          <Popover className="relative">
-            <PopoverButton className={toolbarButtonClass}>
-              Sort
-              {sortRules.length > 0 && (
-                <span className="ml-1 inline-flex min-w-5 items-center justify-center rounded-md bg-slate-800 px-1.5 py-0.5 text-[11px] font-semibold text-white">
-                  {sortRules.length}
-                </span>
-              )}
-            </PopoverButton>
-
-            <PopoverPanel
-              anchor="bottom end"
-              className="w-screen md:w-2xl border border-slate-200 shadow-2xl bg-white rounded-xl p-2 backdrop-blur-md transition-colors dark:border-slate-600 dark:bg-slate-950/70 flex flex-col overflow-hidden"
-            >
-              <div className="space-y-3">
-                {sortRules.map((sortRule, index) => (
-                  <div
-                    key={`${sortRule.field}-${index}`}
-                    className="grid w-full min-w-0 gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] md:items-center"
-                  >
-                    <div className="min-w-0 flex-1">
-                      <Select
-                        value={sortRule.field}
-                        onChange={(value) =>
-                          setSortRules((current) =>
-                            current.map((item, itemIndex) =>
-                              itemIndex === index
-                                ? { ...item, field: value as string }
-                                : item,
-                            ),
-                          )
-                        }
-                        options={selectableColumns}
-                        placeholder=""
-                        className="h-8 rounded text-xs w-full min-w-0"
-                      />
-                    </div>
-
-                    <div className="min-w-0 flex-1">
-                      <Select
-                        value={sortRule.direction}
-                        onChange={(value) =>
-                          setSortRules((current) =>
-                            current.map((item, itemIndex) =>
-                              itemIndex === index
-                                ? { ...item, direction: value as SortDirection }
-                                : item,
-                            ),
-                          )
-                        }
-                        options={[
-                          { label: "A to Z", value: "asc" },
-                          { label: "Z to A", value: "desc" },
-                        ]}
-                        placeholder=""
-                        className="h-8 rounded text-xs w-full min-w-0"
-                      />
-                    </div>
-
-                    <div className="flex items-center gap-2 shrink-0 md:justify-self-end">
-                      <button
-                        type="button"
-                        onClick={() =>
-                          setSortRules((current) =>
-                            current.filter(
-                              (_, itemIndex) => itemIndex !== index,
-                            ),
-                          )
-                        }
-                        className="flex items-center cursor-pointer justify-center h-9 w-9 rounded-lg text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:text-slate-500 dark:hover:bg-slate-900 dark:hover:text-slate-200 cursor-pointer"
-                        aria-label="Remove sort"
-                      >
-                        <X size={16} />
-                      </button>
-                    </div>
-                  </div>
-                ))}
-
-                {sortRules.length === 0 && (
-                  <div className="grid w-full min-w-0 gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] md:items-center">
-                    <div className="min-w-0 flex-1">
-                      <Select
-                        value=""
-                        onChange={(value) =>
-                          setSortRules(
-                            value ? [createSortRule(value as string)] : [],
-                          )
-                        }
-                        options={selectableColumns}
-                        placeholder=""
-                        className="h-8 rounded text-xs w-full min-w-0"
-                      />
-                    </div>
-
-                    <div className="min-w-0 flex-1">
-                      <Select
-                        value="asc"
-                        onChange={(value) =>
-                          setSortRules((current) =>
-                            current.length === 0
-                              ? current
-                              : current.map((item, itemIndex) =>
-                                  itemIndex === 0
-                                    ? { ...item, direction: value as SortDirection }
-                                    : item,
-                                ),
-                          )
-                        }
-                        options={[
-                          { label: "A to Z", value: "asc" },
-                          { label: "Z to A", value: "desc" },
-                        ]}
-                        placeholder=""
-                        className="h-8 rounded text-xs w-full min-w-0"
-                      />
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              <div className="mt-3 max-h-[40vh] space-y-1 overflow-y-auto overflow-x-hidden border-t border-slate-200 pt-3 dark:border-slate-800">
-                <button
-                  type="button"
-                  onClick={() => setSortRules([])}
-                  className={clsx(
-                    "flex w-full min-w-0 items-center rounded px-3 py-2 text-left text-sm transition cursor-pointer",
-                    "text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-900",
-                    sortRules.length === 0 &&
-                      "bg-slate-100 font-medium dark:bg-slate-900",
-                  )}
-                >
-                  <span className="truncate">No sort</span>
-                </button>
-                {selectableColumns.map((column) => (
-                  <button
-                    key={column.value}
-                    type="button"
-                    onClick={() =>
-                      setSortRules((current) =>
-                        current.some((item) => item.field === column.value)
-                          ? current
-                          : [...current, createSortRule(column.value)],
-                      )
-                    }
-                    className={clsx(
-                      "flex w-full min-w-0 items-center rounded px-3 py-2 text-left text-sm transition cursor-pointer",
-                      "text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-900",
-                      sortRules.some((item) => item.field === column.value) &&
-                        "bg-slate-100 font-medium dark:bg-slate-900",
-                    )}
-                  >
-                    <span className="truncate">{column.label}</span>
-                  </button>
-                ))}
-              </div>
-            </PopoverPanel>
-          </Popover>
-          {isSearchOpen ? (
-            <div className="relative w-72">
-              <Search
-                size={15}
-                className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500"
-              />
-              <input
-                type="text"
-                value={filterSearch}
-                onChange={(event) => setFilterSearch(event.target.value)}
-                placeholder="Search in table"
-                className="h-9 w-full rounded-xl border border-slate-300 bg-white py-2 pl-9 pr-10 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-sky-400 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:placeholder:text-slate-500"
-              />
-              <button
-                type="button"
-                onClick={closeSearch}
-                className="absolute right-2 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-md text-slate-400 transition hover:bg-slate-100 hover:text-slate-700 dark:text-slate-500 dark:hover:bg-slate-800 dark:hover:text-slate-200 cursor-pointer"
-                aria-label="Close search"
-              >
-                <X size={14} />
-              </button>
-            </div>
-          ) : (
-            <button
-              type="button"
-              onClick={() => setIsSearchOpen(true)}
-              className={toolbarIconButtonClass}
-              aria-label="Open search"
-            >
-              <Search size={15} />
-            </button>
-          )}
-          <Popover className="relative">
-            <PopoverButton className={toolbarIconButtonClass}>
-              <Ellipsis size={16} />
-            </PopoverButton>
-
-            <PopoverPanel
-              anchor="bottom end"
-              className="w-56 border border-slate-200 shadow-2xl bg-white rounded-xl p-2 backdrop-blur-md transition-colors dark:border-slate-600 dark:bg-slate-950/70 flex flex-col overflow-hidden"
-            >
-              <button
-                type="button"
-                onClick={handlePrintPage}
-                className="flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-slate-700 transition hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-900"
-              >
-                <Printer size={16} />
-                <span>Print the page</span>
-              </button>
-              <button
-                type="button"
-                onClick={handlePrintData}
-                className="flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-slate-700 transition hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-900"
-              >
-                <Printer size={16} />
-                <span>Print the data</span>
-              </button>
-              <button
-                type="button"
-                onClick={handleExportSvg}
-                className="flex w-full cursor-pointer items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm text-slate-700 transition hover:bg-slate-50 dark:text-slate-200 dark:hover:bg-slate-900"
-              >
-                <FileDown size={16} />
-                <span>Export the data as CSV</span>
-              </button>
-            </PopoverPanel>
-          </Popover>
-        </div>
-      </div>
+      <TableToolbar
+        activeFilterConditionCount={activeFilterConditionCount}
+        description={description}
+        filterItems={filterItems}
+        filterSearch={filterSearch}
+        groupRules={groupRules}
+        isSearchOpen={isSearchOpen}
+        onCloseSearch={closeSearch}
+        onExportSvg={handleExportSvg}
+        onPrintData={handlePrintData}
+        onPrintPage={handlePrintPage}
+        rootFilterGate={rootFilterGate}
+        selectableColumns={selectableColumns}
+        setFilterItems={setFilterItems}
+        setFilterSearch={setFilterSearch}
+        setGroupRules={setGroupRules}
+        setIsSearchOpen={setIsSearchOpen}
+        setRootFilterGate={setRootFilterGate}
+        setShowCounts={setShowCounts}
+        setSortRules={setSortRules}
+        showExtraActions={showExtraActions}
+        showFilters={showFilters}
+        showGrouping={showGrouping}
+        showCounts={showCounts}
+        showSearch={showSearch}
+        showSorting={showSorting}
+        sortRules={sortRules}
+        title={title}
+      />
       <div
         ref={scrollContainerRef}
         tabIndex={0}
@@ -1481,7 +1727,7 @@ export function Table<T>({
                   Rows per page
                 </span>
                 <Popover className="relative">
-                  <PopoverButton className="flex h-6 min-w-6 cursor-pointer items-center justify-between gap-2 rounded border border-slate-200 focus:outline-0 focus:ring-0 bg-white px-3 text-sm font-medium text-slate-700 transition hover:border-slate-300 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-slate-600 dark:hover:bg-slate-950">
+                  <PopoverButton className="flex h-6 min-w-6 cursor-pointer items-center justify-between gap-2 rounded border border-slate-200 bg-white px-3 text-sm font-medium text-slate-700 transition outline-none focus:outline-none focus-visible:outline-none hover:border-slate-300 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-200 dark:hover:border-slate-600 dark:hover:bg-slate-950">
                     <span>{rowsPerPage}</span>
                     <ChevronDown size={14} />
                   </PopoverButton>

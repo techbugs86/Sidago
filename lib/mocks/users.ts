@@ -3,6 +3,7 @@ import { UserRole } from "../navigation";
 export type MockUser = {
   id: string;
   name: string;
+  surname?: string;
   email: string;
   password: string;
   role: UserRole;
@@ -14,6 +15,7 @@ export const users: readonly MockUser[] = [
   {
     id: "1",
     name: "Mariz",
+    surname: "Cabido",
     email: "mariz@gmail.com",
     password: "123456",
     role: "agent",
@@ -23,6 +25,7 @@ export const users: readonly MockUser[] = [
   {
     id: "2",
     name: "Tom",
+    surname: "Silver",
     email: "tom@gmail.com",
     password: "123456",
     role: "agent",
@@ -32,6 +35,7 @@ export const users: readonly MockUser[] = [
   {
     id: "3",
     name: "Chris",
+    surname: "Moore",
     email: "chris@gmail.com",
     password: "123456",
     role: "agent",
@@ -41,6 +45,7 @@ export const users: readonly MockUser[] = [
   {
     id: "4",
     name: "Bryan",
+    surname: "Taylor",
     email: "bryan@gmail.com",
     password: "123456",
     role: "agent",

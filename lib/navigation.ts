@@ -1,11 +1,23 @@
 import {
+  BarChart2,
+  Building2,
   Clock,
   Flame,
+  History,
   LayoutDashboard,
+  List,
   Lock,
+  Mail,
+  MailWarning,
+  MailX,
+  MessageSquare,
   Package,
   Phone,
+  RefreshCw,
   RotateCcw,
+  Target,
+  UserPlus,
+  Wrench,
   type LucideIcon,
 } from "lucide-react";
 
@@ -103,14 +115,108 @@ export const backofficeNavigation: NavigationItem[] = [
   },
 ];
 
+export const adminOnlyNavigation: NavigationItem[] = [
+  {
+    label: "Dashboard",
+    href: "/dashboard",
+    icon: LayoutDashboard,
+  },
+  {
+    label: "Level 2 Update",
+    href: "/level-2-update",
+    icon: RefreshCw,
+  },
+  {
+    label: "Level 2 History",
+    href: "/level-2-history",
+    icon: History,
+  },
+  {
+    label: "Fix Leads",
+    href: "/fix-leads",
+    icon: Wrench,
+  },
+  {
+    label: "Leads Stats",
+    href: "/leads-stats",
+    icon: BarChart2,
+  },
+  {
+    label: "SMS - Mariz Cabido",
+    href: "/sms/mariz-cabido",
+    icon: MessageSquare,
+  },
+  {
+    label: "SMS - Tom Silver",
+    href: "/sms/tom-silver",
+    icon: MessageSquare,
+  },
+  {
+    label: "SMS - Bryan Taylor",
+    href: "/sms/bryan-taylor",
+    icon: MessageSquare,
+  },
+  {
+    label: "SMS - Chris Moore",
+    href: "/sms/chris-moore",
+    icon: MessageSquare,
+  },
+  {
+    label: "Email - Mariz Cabido",
+    href: "/email/mariz-cabido",
+    icon: Mail,
+  },
+  {
+    label: "Email - Tom Silver",
+    href: "/email/tom-silver",
+    icon: Mail,
+  },
+  {
+    label: "Email - Bryan Taylor",
+    href: "/email/bryan-taylor",
+    icon: Mail,
+  },
+  {
+    label: "Email - Chris Moore",
+    href: "/email/chris-moore",
+    icon: Mail,
+  },  
+  {
+    label: "Blocked Email",
+    href: "/blocked-email",
+    icon: MailX,
+  },
+  {
+    label: "Companies",
+    href: "/companies",
+    icon: Building2,
+  },
+  {
+    label: "Additional Contacts",
+    href: "/additional-contacts",
+    icon: UserPlus,
+  },
+  {
+    label: "Leads",
+    href: "/leads",
+    icon: Target,
+  },
+  {
+    label: "Email Blocklist Directory",
+    href: "/email-blocklist-directory",
+    icon: List,
+  },
+  {
+    label: "Dead/Missing Email",
+    href: "/dead-missing-email",
+    icon: MailWarning,
+  },
+];
+
 const navigationByRole: Record<UserRole, NavigationItem[]> = {
   agent: agentNavigation,
   admin: [
-    {
-      label: "Dashboard",
-      href: "/dashboard",
-      icon: LayoutDashboard,
-    },
+    ...adminOnlyNavigation,
     ...agentNavigation.filter((item) => item.href !== "/dashboard"),
     ...backofficeNavigation.filter((item) => item.href !== "/dashboard"),
   ],
