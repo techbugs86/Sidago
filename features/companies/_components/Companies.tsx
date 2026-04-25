@@ -2,6 +2,7 @@
 
 import { CompanySymbolBadge, Table, TimezoneBadge } from "@/components/ui";
 import { Column } from "@/components/ui/Table";
+import { showErrorToast, showSuccessToast } from "@/lib/toast";
 import { COUNTRY_OPTIONS } from "@/types/country.types";
 import { COMPANY, COMPANY_VALUES } from "@/types/company.types";
 import { TIMEZONE_OPTIONS } from "@/types/timezone.types";
@@ -50,7 +51,7 @@ function normalizeCompany(company: COMPANY): COMPANY {
 }
 
 export function Companies() {
-  const [companies, setCompanies] = useState<COMPANY[]>([]);
+  const [companies, setCompanies] = useState<COMPANY[]>(COMPANY_VALUES);
   const [drawerState, setDrawerState] = useState<DrawerState>({
     isOpen: false,
     mode: "create",
@@ -166,6 +167,7 @@ export function Companies() {
     const nextCompany = normalizeCompany(drawerState.draft);
 
     if (!nextCompany.symbol || !nextCompany.name) {
+      showErrorToast(new Error("Company symbol and company name are required."));
       return;
     }
 
@@ -177,6 +179,11 @@ export function Companies() {
               ? nextCompany
               : company,
           ),
+    );
+    showSuccessToast(
+      drawerState.mode === "create"
+        ? "Company created successfully."
+        : "Company updated successfully.",
     );
     closeDrawer();
   };
