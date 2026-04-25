@@ -192,14 +192,14 @@ export const adminOnlyNavigation: NavigationItem[] = [
     icon: Building2,
   },
   {
-    label: "Additional Contacts",
-    href: "/additional-contacts",
-    icon: UserPlus,
-  },
-  {
     label: "Leads",
     href: "/leads",
     icon: Target,
+  },
+  {
+    label: "Additional Contacts",
+    href: "/additional-contacts",
+    icon: UserPlus,
   },
   {
     label: "Email Blocklist Directory",

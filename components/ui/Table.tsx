@@ -4,6 +4,7 @@ import React, { useMemo, useRef, useState } from "react";
 import { Input } from "./Input";
 import { Select } from "./Select";
 import { EmailLink } from "./EmailLink";
+import { GridEmptyState } from "./GridEmptyState";
 import {
   Check,
   ChevronDown,
@@ -1615,7 +1616,7 @@ export function Table<T>({
     return (
       <div className="overflow-hidden ">
         {emptyState ?? (
-          <div className="p-10 text-center text-gray-500">{emptyText}</div>
+          <GridEmptyState message={emptyText} />
         )}
       </div>
     );
@@ -1682,9 +1683,7 @@ export function Table<T>({
               <tr>
                 <td colSpan={columns.length} className="px-0 py-0">
                   {emptyState ?? (
-                    <div className="p-10 text-center text-gray-500">
-                      {emptyText}
-                    </div>
+                    <GridEmptyState message={emptyText} />
                   )}
                 </td>
               </tr>

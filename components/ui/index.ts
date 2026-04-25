@@ -17,6 +17,7 @@ export { CardShell } from "./CardShell";
 export { Confirmation } from "./Confirmation";
 export { EmptyState } from "./EmptyState";
 export { ErrorState } from "./ErrorState";
+export { GridEmptyState } from "./GridEmptyState";
 export { Input } from "./Input";
 export { Modal } from "./Modal";
 export { Preloader } from "./Preloader";

@@ -1,4 +1,5 @@
 import {
+  adminOnlyNavigation,
   agentNavigation,
   backofficeNavigation,
   type UserRole,
@@ -10,7 +11,13 @@ const agentRoutes = new Set(agentNavigation.map((item) => item.href));
 
 const backofficeRoutes = new Set(backofficeNavigation.map((item) => item.href));
 
-const allProtectedRoutes = new Set([...agentRoutes, ...backofficeRoutes]);
+const adminRoutes = new Set(adminOnlyNavigation.map((item) => item.href));
+
+const allProtectedRoutes = new Set([
+  ...adminRoutes,
+  ...agentRoutes,
+  ...backofficeRoutes,
+]);
 
 export function getDashboardRouteForRole(role: UserRole): string {
   switch (role) {

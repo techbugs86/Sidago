@@ -1,12 +1,14 @@
 "use client";
 
-import React from "react";
+type GridEmptyStateProps = {
+  title?: string;
+  message: string;
+};
 
-export function UnassignedHotLeadsEmptyState({
-  subtitle,
-}: {
-  subtitle: string;
-}) {
+export function GridEmptyState({
+  title = "No records yet",
+  message,
+}: GridEmptyStateProps) {
   return (
     <div className="px-6 py-16 md:px-10">
       <div className="mx-auto flex max-w-xl flex-col items-center rounded-3xl border border-slate-200/80 bg-white/85 px-6 py-12 text-center shadow-sm dark:border-slate-800 dark:bg-slate-950/70">
@@ -30,10 +32,10 @@ export function UnassignedHotLeadsEmptyState({
           </div>
         </div>
         <h3 className="text-xl font-bold tracking-tight text-slate-900 dark:text-slate-50">
-          No leads yet
+          {title}
         </h3>
         <p className="mt-3 max-w-md text-sm leading-6 text-slate-600 dark:text-slate-300">
-          {subtitle}
+          {message}
         </p>
       </div>
     </div>

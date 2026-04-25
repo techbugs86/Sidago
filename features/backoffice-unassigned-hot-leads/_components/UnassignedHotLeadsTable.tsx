@@ -1,11 +1,15 @@
 "use client";
 
-import { CompanySymbolBadge, TimezoneBadge, TypeBadge } from "@/components/ui";
+import {
+  CompanySymbolBadge,
+  GridEmptyState,
+  TimezoneBadge,
+  TypeBadge,
+} from "@/components/ui";
 import { Table, type Column } from "@/components/ui/Table";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import React, { useMemo } from "react";
 import { UnassignedHotLeadsDrawer } from "./UnassignedHotLeadsDrawer";
-import { UnassignedHotLeadsEmptyState } from "./UnassignedHotLeadsEmptyState";
 import {
   assigneeOptions,
   contactTypeOptions,
@@ -275,7 +279,10 @@ export function UnassignedHotLeadsTable({
           updateRouteForIndex(index >= 0 ? index : null);
         }}
         emptyState={
-          <UnassignedHotLeadsEmptyState subtitle="Your team has already picked up every hot lead in this queue. When new unassigned leads arrive, they will appear here automatically." />
+          <GridEmptyState
+            title="No leads yet"
+            message="Your team has already picked up every hot lead in this queue. When new unassigned leads arrive, they will appear here automatically."
+          />
         }
       />
       <UnassignedHotLeadsDrawer
