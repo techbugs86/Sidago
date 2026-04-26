@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  CheckboxInput,
   Drawer,
   DrawerActionHeader,
   EditableField,
@@ -11,6 +10,7 @@ import {
   TypeBadge,
 } from "@/components/ui";
 import { LEAD_TYPE_OPTIONS } from "@/types/lead-type.types";
+import { Check } from "lucide-react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import type { DeadMissingEmailRow } from "../_lib/data";
@@ -57,6 +57,37 @@ function DetailRow({ label, value }: { label: string; value: React.ReactNode }) 
       <div className="w-64 max-w-[65%] rounded border border-gray-300 bg-white px-3 py-1.5 text-left text-xs font-semibold text-slate-600 dark:border-gray-600 dark:bg-gray-800 dark:text-slate-200">
         {value}
       </div>
+    </div>
+  );
+}
+
+function ToggleField({
+  checked,
+  label,
+  onChange,
+}: {
+  checked: boolean;
+  label: string;
+  onChange: (checked: boolean) => void;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-3">
+      <span className="text-sm font-medium text-slate-700 dark:text-slate-200">
+        {label}
+      </span>
+      <button
+        type="button"
+        role="switch"
+        aria-checked={checked}
+        onClick={() => onChange(!checked)}
+        className={
+          checked
+            ? "flex h-8 w-8 cursor-pointer items-center justify-center rounded bg-emerald-100 text-emerald-700 transition hover:bg-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-300 dark:hover:bg-emerald-900/70"
+            : "flex h-8 w-8 cursor-pointer items-center justify-center rounded bg-slate-100 text-slate-400 transition hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-500 dark:hover:bg-slate-700"
+        }
+      >
+        <Check size={16} />
+      </button>
     </div>
   );
 }
@@ -216,15 +247,13 @@ export function DeadMissingEmailDrawer({
                 className="text-xs font-semibold leading-5"
               />
             </EditableField>
-            <EditableField label="Missing/Dead Email">
-              <CheckboxInput
+            <div className="py-1.5">
+              <ToggleField
+                label="Missing/Dead Email"
                 checked={row.missingDeadEmail}
-                onChange={(event) =>
-                  onChange("missingDeadEmail", event.target.checked)
-                }
-                labelClassName="justify-end"
+                onChange={(checked) => onChange("missingDeadEmail", checked)}
               />
-            </EditableField>
+            </div>
           </DetailCard>
 
           <DetailCard label="Lead Types">

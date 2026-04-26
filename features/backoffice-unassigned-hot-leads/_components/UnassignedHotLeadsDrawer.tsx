@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  CheckboxInput,
   CompanySymbolBadge,
   DateInput,
   Drawer,
@@ -19,7 +18,7 @@ import {
   getLeadId,
   type UnassignedHotLeadRow,
 } from "../_lib/data";
-import { ChevronDown, ChevronUp, Link, Printer } from "lucide-react";
+import { Check, ChevronDown, ChevronUp, Link, Printer } from "lucide-react";
 import { isValidElement, useEffect, useMemo, useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { AGENT_VALUES } from "@/types/agent.types";
@@ -98,6 +97,37 @@ function escapeHtml(value: string) {
 
 function stripTimezonePrefix(timezone: string | undefined) {
   return (timezone ?? "").replace(/^\d+-/, "");
+}
+
+function ToggleField({
+  checked,
+  label,
+  onChange,
+}: {
+  checked: boolean;
+  label: string;
+  onChange: (checked: boolean) => void;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-3">
+      <span className="text-sm font-medium text-slate-700 dark:text-slate-200">
+        {label}
+      </span>
+      <button
+        type="button"
+        role="switch"
+        aria-checked={checked}
+        onClick={() => onChange(!checked)}
+        className={
+          checked
+            ? "flex h-8 w-8 cursor-pointer items-center justify-center rounded bg-emerald-100 text-emerald-700 transition hover:bg-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-300 dark:hover:bg-emerald-900/70"
+            : "flex h-8 w-8 cursor-pointer items-center justify-center rounded bg-slate-100 text-slate-400 transition hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-500 dark:hover:bg-slate-700"
+        }
+      >
+        <Check size={16} />
+      </button>
+    </div>
+  );
 }
 
 export function UnassignedHotLeadsDrawer({
@@ -396,15 +426,13 @@ export function UnassignedHotLeadsDrawer({
               className="py-1.5 text-xs"
             />
           </EditableField>
-          <EditableField label="Not Work Anymore">
-            <CheckboxInput
+          <div className="py-1.5">
+            <ToggleField
+              label="Not Work Anymore"
               checked={form.notWorked}
-              onChange={(event) =>
-                updateForm("notWorked", event.target.checked)
-              }
-              labelClassName="justify-end"
+              onChange={(checked) => updateForm("notWorked", checked)}
             />
-          </EditableField>
+          </div>
         </DetailCard>
 
         <DetailCard label="Other Contacts">
