@@ -1,12 +1,27 @@
 "use client";
 
-import { CompanySymbolBadge, Drawer, EmailLink } from "@/components/ui";
+import {
+  CompanySymbolBadge,
+  Drawer,
+  EditableDrawerFooter,
+  EditableField,
+  Select,
+  Textarea,
+  TextInput,
+} from "@/components/ui";
 import { AgentSmsRow } from "../_lib/data";
 
 type AgentSmsDrawerProps = {
   row: AgentSmsRow | null;
-  onClose: () => void;
+  onCancel: () => void;
+  onChange: (field: keyof AgentSmsRow, value: string) => void;
+  onReset: () => void;
+  onSave: () => void;
 };
+
+const smsStatusOptions = ["Queued", "Sent", "Delivered", "Replied", "Failed"].map(
+  (value) => ({ label: value, value }),
+);
 
 function DetailRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (
@@ -21,11 +36,17 @@ function DetailRow({ label, value }: { label: string; value: React.ReactNode }) 
   );
 }
 
-export function AgentSmsDrawer({ row, onClose }: AgentSmsDrawerProps) {
+export function AgentSmsDrawer({
+  row,
+  onCancel,
+  onChange,
+  onReset,
+  onSave,
+}: AgentSmsDrawerProps) {
   return (
     <Drawer
       isOpen={Boolean(row)}
-      onClose={onClose}
+      onClose={onCancel}
       direction="right"
       size="min(560px, 100vw)"
       header={
@@ -37,6 +58,13 @@ export function AgentSmsDrawer({ row, onClose }: AgentSmsDrawerProps) {
             {row?.leadId ?? "SMS activity"}
           </p>
         </div>
+      }
+      footer={
+        <EditableDrawerFooter
+          onCancel={onCancel}
+          onReset={onReset}
+          onSave={onSave}
+        />
       }
     >
       {row && (
@@ -52,12 +80,45 @@ export function AgentSmsDrawer({ row, onClose }: AgentSmsDrawerProps) {
             }
           />
           <DetailRow label="Company Name" value={row.companyName} />
-          <DetailRow label="Full Name" value={row.fullName} />
-          <DetailRow label="Phone" value={row.phone} />
-          <DetailRow label="Email" value={<EmailLink value={row.email} />} />
+          <EditableField label="Full Name">
+            <TextInput
+              value={row.fullName}
+              onChange={(event) => onChange("fullName", event.target.value)}
+              className="text-sm font-medium"
+            />
+          </EditableField>
+          <EditableField label="Phone">
+            <TextInput
+              value={row.phone}
+              onChange={(event) => onChange("phone", event.target.value)}
+              className="text-sm font-medium"
+            />
+          </EditableField>
+          <EditableField label="Email">
+            <TextInput
+              type="email"
+              value={row.email}
+              onChange={(event) => onChange("email", event.target.value)}
+              className="text-sm font-medium"
+            />
+          </EditableField>
           <DetailRow label="Brand" value={row.brand} />
-          <DetailRow label="SMS Status" value={row.smsStatus} />
-          <DetailRow label={`${row.brand} SMS Log`} value={row.smsLog} />
+          <EditableField label="SMS Status">
+            <Select
+              value={row.smsStatus}
+              onChange={(value) => onChange("smsStatus", String(value))}
+              options={smsStatusOptions}
+              className="text-sm font-medium"
+            />
+          </EditableField>
+          <EditableField label={`${row.brand} SMS Log`} align="stack">
+            <Textarea
+              value={row.smsLog}
+              onChange={(event) => onChange("smsLog", event.target.value)}
+              rows={4}
+              className="text-sm font-medium leading-5"
+            />
+          </EditableField>
         </dl>
       )}
     </Drawer>

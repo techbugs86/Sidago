@@ -1,13 +1,35 @@
 "use client";
 
-import { Drawer, EmailLink, TypeBadge } from "@/components/ui";
+import {
+  Drawer,
+  EditableField,
+  Select,
+  Textarea,
+  TextInput,
+} from "@/components/ui";
+import {
+  contactTypeOptions,
+  leadTypeOptions,
+} from "@/features/backoffice-shared/constants";
 import { BlockedEmailRow } from "../_lib/data";
 
 type BlockedEmailDrawerProps = {
   row: BlockedEmailRow | null;
-  onClose: () => void;
+  onCancel: () => void;
+  onChange: (field: keyof BlockedEmailRow, value: string) => void;
+  onReset: () => void;
+  onSave: () => void;
   onUnblock: (row: BlockedEmailRow) => void;
 };
+
+const leadTypeSelectOptions = leadTypeOptions.map((value) => ({
+  label: value,
+  value,
+}));
+const contactTypeSelectOptions = contactTypeOptions.map((value) => ({
+  label: value,
+  value,
+}));
 
 function DetailRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (
@@ -24,13 +46,16 @@ function DetailRow({ label, value }: { label: string; value: React.ReactNode }) 
 
 export function BlockedEmailDrawer({
   row,
-  onClose,
+  onCancel,
+  onChange,
+  onReset,
+  onSave,
   onUnblock,
 }: BlockedEmailDrawerProps) {
   return (
     <Drawer
       isOpen={Boolean(row)}
-      onClose={onClose}
+      onClose={onCancel}
       direction="right"
       size="min(560px, 100vw)"
       header={
@@ -47,10 +72,24 @@ export function BlockedEmailDrawer({
         <div className="flex flex-col gap-2 bg-white px-5 py-4 dark:bg-gray-900 sm:flex-row sm:items-center sm:justify-end">
           <button
             type="button"
-            onClick={onClose}
+            onClick={onReset}
+            className="cursor-pointer rounded border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition hover:border-slate-300 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:border-slate-600 dark:hover:bg-slate-800"
+          >
+            Reset
+          </button>
+          <button
+            type="button"
+            onClick={onCancel}
             className="cursor-pointer rounded border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition hover:border-slate-300 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:border-slate-600 dark:hover:bg-slate-800"
           >
             Cancel
+          </button>
+          <button
+            type="button"
+            onClick={onSave}
+            className="cursor-pointer rounded bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-700 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-300"
+          >
+            Save
           </button>
           {row && (
             <button
@@ -67,24 +106,50 @@ export function BlockedEmailDrawer({
       {row && (
         <dl className="grid gap-3">
           <DetailRow label="Lead ID" value={row.leadId} />
-          <DetailRow
-            label="Lead Type"
-            value={<TypeBadge value={row.leadType} kind="lead" />}
-          />
-          <DetailRow
-            label="Contact Type"
-            value={<TypeBadge value={row.contactType} kind="contact" />}
-          />
-          <DetailRow label="Email" value={<EmailLink value={row.email} />} />
-          <DetailRow
-            label="Blocked Email"
-            value={<EmailLink value={row.blockedEmail} />}
-          />
+          <EditableField label="Lead Type">
+            <Select
+              value={row.leadType}
+              onChange={(value) => onChange("leadType", String(value))}
+              options={leadTypeSelectOptions}
+              className="text-sm font-medium"
+            />
+          </EditableField>
+          <EditableField label="Contact Type">
+            <Select
+              value={row.contactType}
+              onChange={(value) => onChange("contactType", String(value))}
+              options={contactTypeSelectOptions}
+              className="text-sm font-medium"
+            />
+          </EditableField>
+          <EditableField label="Email">
+            <TextInput
+              type="email"
+              value={row.email}
+              onChange={(event) => onChange("email", event.target.value)}
+              className="text-sm font-medium"
+            />
+          </EditableField>
+          <EditableField label="Blocked Email">
+            <TextInput
+              type="email"
+              value={row.blockedEmail}
+              onChange={(event) => onChange("blockedEmail", event.target.value)}
+              className="text-sm font-medium"
+            />
+          </EditableField>
           <DetailRow
             label="Blocked At"
             value={new Date(row.blockedAt).toLocaleString()}
           />
-          <DetailRow label="Reason" value={row.reason} />
+          <EditableField label="Reason" align="stack">
+            <Textarea
+              value={row.reason}
+              onChange={(event) => onChange("reason", event.target.value)}
+              rows={3}
+              className="text-sm font-medium leading-5"
+            />
+          </EditableField>
         </dl>
       )}
     </Drawer>

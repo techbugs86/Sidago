@@ -1,6 +1,12 @@
 "use client";
 
-import { Drawer, Select, Textarea, TextInput } from "@/components/ui";
+import {
+  Drawer,
+  EditableDrawerFooter,
+  Select,
+  Textarea,
+  TextInput,
+} from "@/components/ui";
 import { COUNTRY_OPTIONS } from "@/types/country.types";
 import { COMPANY } from "@/types/company.types";
 import { TIMEZONE_OPTIONS } from "@/types/timezone.types";
@@ -12,6 +18,7 @@ type CompanyDrawerProps = {
   initialCompany: COMPANY;
   isOpen: boolean;
   mode: CompanyDrawerMode;
+  errors?: Partial<Record<keyof COMPANY, string>>;
   onCancel: () => void;
   onChange: (field: keyof COMPANY, value: string) => void;
   onReset: () => void;
@@ -26,6 +33,7 @@ export function CompanyDrawer({
   initialCompany,
   isOpen,
   mode,
+  errors = {},
   onCancel,
   onChange,
   onReset,
@@ -54,29 +62,11 @@ export function CompanyDrawer({
         </div>
       }
       footer={
-        <div className="flex flex-col gap-2 bg-white px-5 py-4 dark:bg-gray-900 sm:flex-row sm:items-center sm:justify-end">
-          <button
-            type="button"
-            onClick={onReset}
-            className="cursor-pointer rounded border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition hover:border-slate-300 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:border-slate-600 dark:hover:bg-slate-800"
-          >
-            Reset
-          </button>
-          <button
-            type="button"
-            onClick={onCancel}
-            className="cursor-pointer rounded border border-slate-200 px-4 py-2 text-sm font-medium text-slate-600 transition hover:border-slate-300 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:border-slate-600 dark:hover:bg-slate-800"
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            onClick={onSave}
-            className="cursor-pointer rounded bg-slate-900 px-4 py-2 text-sm font-semibold text-white transition hover:bg-slate-700 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-300"
-          >
-            Save
-          </button>
-        </div>
+        <EditableDrawerFooter
+          onCancel={onCancel}
+          onReset={onReset}
+          onSave={onSave}
+        />
       }
     >
       <div className="grid gap-4 md:grid-cols-2">
@@ -84,12 +74,14 @@ export function CompanyDrawer({
           label="Company Symbol"
           value={company.symbol}
           onChange={(event) => onChange("symbol", event.target.value)}
+          error={errors.symbol}
           className={inputClassName}
         />
         <TextInput
           label="Company Name"
           value={company.name}
           onChange={(event) => onChange("name", event.target.value)}
+          error={errors.name}
           className={inputClassName}
         />
         <Select
@@ -97,6 +89,7 @@ export function CompanyDrawer({
           value={company.timezone}
           onChange={(value) => onChange("timezone", String(value))}
           options={TIMEZONE_OPTIONS}
+          error={errors.timezone}
           className="h-10 rounded text-sm"
         />
         <Select
@@ -104,6 +97,7 @@ export function CompanyDrawer({
           value={company.country}
           onChange={(value) => onChange("country", String(value))}
           options={COUNTRY_OPTIONS}
+          error={errors.country}
           className="h-10 rounded text-sm"
         />
         <Textarea
@@ -111,6 +105,7 @@ export function CompanyDrawer({
           value={company.description}
           onChange={(event) => onChange("description", event.target.value)}
           rows={4}
+          error={errors.description}
           wrapperClassName="md:col-span-2"
           className="rounded border bg-white px-3 py-2 text-sm text-slate-700 transition focus:border-indigo-500 focus:outline-none dark:bg-gray-800 dark:text-slate-200 dark:focus:border-indigo-400"
         />
@@ -120,42 +115,49 @@ export function CompanyDrawer({
           onChange={(event) =>
             onChange("estimatedMarketCap", event.target.value)
           }
+          error={errors.estimatedMarketCap}
           className={inputClassName}
         />
         <TextInput
           label="Primary Venue"
           value={company.primaryVenue}
           onChange={(event) => onChange("primaryVenue", event.target.value)}
+          error={errors.primaryVenue}
           className={inputClassName}
         />
         <TextInput
           label="City"
           value={company.city}
           onChange={(event) => onChange("city", event.target.value)}
+          error={errors.city}
           className={inputClassName}
         />
         <TextInput
           label="State"
           value={company.state}
           onChange={(event) => onChange("state", event.target.value)}
+          error={errors.state}
           className={inputClassName}
         />
         <TextInput
           label="Website"
           value={company.website}
           onChange={(event) => onChange("website", event.target.value)}
+          error={errors.website}
           className={inputClassName}
         />
         <TextInput
           label="X (Twitter handle)"
           value={company.twitterHandle}
           onChange={(event) => onChange("twitterHandle", event.target.value)}
+          error={errors.twitterHandle}
           className={inputClassName}
         />
         <TextInput
           label="Zip"
           value={company.zip}
           onChange={(event) => onChange("zip", event.target.value)}
+          error={errors.zip}
           className={inputClassName}
         />
       </div>

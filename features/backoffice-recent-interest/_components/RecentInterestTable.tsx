@@ -3,6 +3,10 @@
 import { CampaignBadge, TypeBadge } from "@/components/ui";
 import { Table, type Column } from "@/components/ui/Table";
 import { getLeadId, getLeadIdOptions } from "@/features/backoffice-shared/constants";
+import {
+  findDrawerRouteIndex,
+  getDrawerRouteLead,
+} from "@/features/backoffice-shared/drawer-route";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import React, { useMemo } from "react";
 import { RecentInterestDrawer } from "./RecentInterestDrawer";
@@ -31,8 +35,7 @@ export function RecentInterestTable({ data, title }: RecentInterestTableProps) {
       return null;
     }
 
-    const nextIndex = data.findIndex((row) => row.email === selectedLead);
-    return nextIndex >= 0 ? nextIndex : null;
+    return findDrawerRouteIndex(data, selectedLead);
   }, [data, searchParams]);
 
   const updateRouteForIndex = (index: number | null) => {
@@ -41,7 +44,7 @@ export function RecentInterestTable({ data, title }: RecentInterestTableProps) {
     if (index === null) {
       params.delete("lead");
     } else {
-      params.set("lead", data[index].email);
+      params.set("lead", getDrawerRouteLead(data[index]));
     }
 
     const query = params.toString();

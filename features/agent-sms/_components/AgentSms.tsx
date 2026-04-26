@@ -2,6 +2,7 @@
 
 import { CompanySymbolBadge, Table } from "@/components/ui";
 import { Column } from "@/components/ui/Table";
+import { showSuccessToast } from "@/lib/toast";
 import { useMemo, useState } from "react";
 import { AgentSmsDrawer } from "./AgentSmsDrawer";
 import { AgentSmsRow, getSmsRowsForAgent } from "../_lib/data";
@@ -34,8 +35,16 @@ function SmsStatusBadge({ status }: { status: string }) {
 }
 
 export function AgentSms({ agentName, agentSlug }: AgentSmsProps) {
-  const [selectedRow, setSelectedRow] = useState<AgentSmsRow | null>(null);
-  const rows = useMemo(() => getSmsRowsForAgent(agentSlug), [agentSlug]);
+  const [rows, setRows] = useState<AgentSmsRow[]>(() =>
+    getSmsRowsForAgent(agentSlug),
+  );
+  const [drawerState, setDrawerState] = useState<{
+    original: AgentSmsRow | null;
+    draft: AgentSmsRow | null;
+  }>({
+    original: null,
+    draft: null,
+  });
   const smsLogTitle = rows[0]?.brand
     ? `SMS Log (${rows[0].brand})`
     : "SMS Log";
@@ -72,11 +81,46 @@ export function AgentSms({ agentName, agentSlug }: AgentSmsProps) {
         title={`SMS - ${agentName}`}
         description="SMS activity and logs tied to assigned leads"
         emptyText="No SMS activity found for this agent."
-        onRowClick={setSelectedRow}
+        onRowClick={(row) =>
+          setDrawerState({ original: { ...row }, draft: { ...row } })
+        }
       />
       <AgentSmsDrawer
-        row={selectedRow}
-        onClose={() => setSelectedRow(null)}
+        row={drawerState.draft}
+        onCancel={() => setDrawerState({ original: null, draft: null })}
+        onChange={(field, value) =>
+          setDrawerState((current) =>
+            current.draft
+              ? {
+                  ...current,
+                  draft: { ...current.draft, [field]: value },
+                }
+              : current,
+          )
+        }
+        onReset={() =>
+          setDrawerState((current) => ({
+            ...current,
+            draft: current.original ? { ...current.original } : null,
+          }))
+        }
+        onSave={() => {
+          if (!drawerState.draft) return;
+
+          const nextRow = {
+            ...drawerState.draft,
+            fullName: drawerState.draft.fullName.trim(),
+            phone: drawerState.draft.phone.trim(),
+            email: drawerState.draft.email.trim(),
+            smsLog: drawerState.draft.smsLog.trim(),
+          };
+
+          setRows((current) =>
+            current.map((row) => (row.id === nextRow.id ? nextRow : row)),
+          );
+          showSuccessToast("SMS activity updated successfully.");
+          setDrawerState({ original: nextRow, draft: nextRow });
+        }}
       />
     </div>
   );

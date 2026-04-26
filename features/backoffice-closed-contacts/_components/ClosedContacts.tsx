@@ -1,13 +1,23 @@
 "use client";
 
 import clsx from "clsx";
-import React, { useMemo, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import React, { useMemo } from "react";
 import { closedContactsTabs, type ClosedContactsTabKey } from "../_lib/data";
 import { ClosedContactsTable } from "./ClosedContactsTable";
 
+function isClosedContactsTabKey(value: string | null): value is ClosedContactsTabKey {
+  return closedContactsTabs.some((tab) => tab.key === value);
+}
+
 export function ClosedContacts() {
-  const [activeTab, setActiveTab] =
-    useState<ClosedContactsTabKey>("svg-current");
+  const pathname = usePathname();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const tabParam = searchParams.get("tab");
+  const activeTab: ClosedContactsTabKey = isClosedContactsTabKey(tabParam)
+    ? tabParam
+    : "svg-current";
 
   const activeView = useMemo(
     () =>
@@ -15,6 +25,17 @@ export function ClosedContacts() {
       closedContactsTabs[0],
     [activeTab],
   );
+
+  const updateTab = (tabKey: ClosedContactsTabKey) => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("tab", tabKey);
+    params.delete("lead");
+
+    const query = params.toString();
+    router.replace(query ? `${pathname}?${query}` : pathname, {
+      scroll: false,
+    });
+  };
 
   return (
     <div className="space-y-4">
@@ -27,7 +48,7 @@ export function ClosedContacts() {
               <button
                 key={tab.key}
                 type="button"
-                onClick={() => setActiveTab(tab.key)}
+                onClick={() => updateTab(tab.key)}
                 className={clsx(
                   "whitespace-nowrap rounded-xl px-4 py-2 text-sm font-medium transition cursor-pointer",
                   isActive
@@ -42,7 +63,11 @@ export function ClosedContacts() {
         </div>
       </div>
 
-      <ClosedContactsTable data={activeView.data} title={activeView.title} />
+      <ClosedContactsTable
+        data={activeView.data}
+        tabKey={activeView.key}
+        title={activeView.title}
+      />
     </div>
   );
 }

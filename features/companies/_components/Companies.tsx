@@ -2,7 +2,9 @@
 
 import { CompanySymbolBadge, Table, TimezoneBadge } from "@/components/ui";
 import { Column } from "@/components/ui/Table";
-import { showErrorToast, showSuccessToast } from "@/lib/toast";
+import { showSuccessToast } from "@/lib/toast";
+import { companyValidationSchema } from "@/lib/validation/company";
+import { validateForm } from "@/lib/validation";
 import { COUNTRY_OPTIONS } from "@/types/country.types";
 import { COMPANY, COMPANY_VALUES } from "@/types/company.types";
 import { TIMEZONE_OPTIONS } from "@/types/timezone.types";
@@ -33,6 +35,7 @@ type DrawerState = {
   originalSymbol: string | null;
   initialCompany: COMPANY;
   draft: COMPANY;
+  errors: Partial<Record<keyof COMPANY, string>>;
 };
 
 function normalizeSymbol(value: string) {
@@ -47,6 +50,11 @@ function normalizeCompany(company: COMPANY): COMPANY {
     website: company.website.trim(),
     twitterHandle: company.twitterHandle.trim(),
     zip: company.zip.trim(),
+    description: company.description.trim(),
+    estimatedMarketCap: company.estimatedMarketCap.trim(),
+    primaryVenue: company.primaryVenue.trim(),
+    city: company.city.trim(),
+    state: company.state.trim(),
   };
 }
 
@@ -58,6 +66,7 @@ export function Companies() {
     originalSymbol: null,
     initialCompany: blankCompany,
     draft: blankCompany,
+    errors: {},
   });
 
   const columns = useMemo<Column<COMPANY>[]>(
@@ -127,6 +136,7 @@ export function Companies() {
       originalSymbol: null,
       initialCompany: blankCompany,
       draft: blankCompany,
+      errors: {},
     });
   };
 
@@ -139,6 +149,7 @@ export function Companies() {
       originalSymbol: company.symbol,
       initialCompany: nextCompany,
       draft: nextCompany,
+      errors: {},
     });
   };
 
@@ -153,6 +164,10 @@ export function Companies() {
         ...current.draft,
         [field]: value,
       },
+      errors: {
+        ...current.errors,
+        [field]: undefined,
+      },
     }));
   };
 
@@ -160,14 +175,25 @@ export function Companies() {
     setDrawerState((current) => ({
       ...current,
       draft: { ...current.initialCompany },
+      errors: {},
     }));
   };
 
   const saveCompany = () => {
     const nextCompany = normalizeCompany(drawerState.draft);
+    const errors = validateForm(nextCompany, companyValidationSchema);
+    const duplicateSymbol = companies.some(
+      (company) =>
+        company.symbol === nextCompany.symbol &&
+        company.symbol !== drawerState.originalSymbol,
+    );
 
-    if (!nextCompany.symbol || !nextCompany.name) {
-      showErrorToast(new Error("Company symbol and company name are required."));
+    if (duplicateSymbol) {
+      errors.symbol = "A company with this symbol already exists.";
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setDrawerState((current) => ({ ...current, errors }));
       return;
     }
 
@@ -191,6 +217,7 @@ export function Companies() {
       originalSymbol: nextCompany.symbol,
       initialCompany: nextCompany,
       draft: nextCompany,
+      errors: {},
     }));
   };
 
@@ -220,6 +247,7 @@ export function Companies() {
         initialCompany={drawerState.initialCompany}
         isOpen={drawerState.isOpen}
         mode={drawerState.mode}
+        errors={drawerState.errors}
         onCancel={closeDrawer}
         onChange={updateDraft}
         onReset={resetDraft}

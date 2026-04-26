@@ -17,6 +17,7 @@ import type { ClosedContactRow } from "../_lib/data";
 import {
   contactTypeOptions,
   getCompanySymbol,
+  getLeadId,
   leadTypeOptions,
 } from "../_lib/data";
 import {
@@ -187,7 +188,7 @@ export function ClosedContactDrawer({
     if (!row || typeof window === "undefined") return "";
 
     const params = new URLSearchParams(searchParams.toString());
-    params.set("lead", row.email);
+    params.set("lead", getLeadId(row));
     return `${window.location.origin}${pathname}?${params.toString()}`;
   }, [pathname, row, searchParams]);
 
@@ -368,8 +369,20 @@ export function ClosedContactDrawer({
 
         {/* Contact info */}
         <DetailCard label="Personal Details">
-          <Detail label="Full Name" value={form.fullName || "-"} />
-          <Detail label="Phone" value={form.phone || "-"} />
+          <EditableField label="Full Name">
+            <TextInput
+              value={form.fullName}
+              onChange={(event) => updateForm("fullName", event.target.value)}
+              className="text-xs font-semibold"
+            />
+          </EditableField>
+          <EditableField label="Phone">
+            <TextInput
+              value={form.phone}
+              onChange={(event) => updateForm("phone", event.target.value)}
+              className="text-xs font-semibold"
+            />
+          </EditableField>
           <EditableField label="Email">
             <TextInput
               type="email"
@@ -447,7 +460,16 @@ export function ClosedContactDrawer({
         </DetailCard>
 
         <DetailCard label="Additional Contacts">
-          <Detail label="Contacts" value="-" />
+          <EditableField label="Contacts" align="stack">
+            <Textarea
+              value={form.additionalContacts}
+              onChange={(event) =>
+                updateForm("additionalContacts", event.target.value)
+              }
+              className="text-xs font-semibold leading-5"
+              placeholder="Add contacts"
+            />
+          </EditableField>
         </DetailCard>
 
         <DetailCard label="Call Outcome">

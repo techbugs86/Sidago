@@ -13,16 +13,26 @@ import {
   getLeadIdOptions,
   leadTypeOptions,
   timezoneOptions,
+  type ClosedContactsTabKey,
 } from "../_lib/data";
 import { ClosedContactDrawer } from "./CloseContactDrawer";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import {
+  findDrawerRouteIndex,
+  getDrawerRouteLead,
+} from "@/features/backoffice-shared/drawer-route";
 
 type ClosedContactsTableProps = {
   data: ClosedContactRow[];
+  tabKey: ClosedContactsTabKey;
   title: string;
 };
 
-export function ClosedContactsTable({ data, title }: ClosedContactsTableProps) {
+export function ClosedContactsTable({
+  data,
+  tabKey,
+  title,
+}: ClosedContactsTableProps) {
   const pathname = usePathname();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -30,8 +40,7 @@ export function ClosedContactsTable({ data, title }: ClosedContactsTableProps) {
   const selectedIndex = useMemo(() => {
     const selectedLead = searchParams.get("lead");
     if (!selectedLead) return null;
-    const idx = data.findIndex((row) => row.email === selectedLead);
-    return idx >= 0 ? idx : null;
+    return findDrawerRouteIndex(data, selectedLead);
   }, [data, searchParams]);
 
   const updateRouteForIndex = (index: number | null) => {
@@ -39,7 +48,8 @@ export function ClosedContactsTable({ data, title }: ClosedContactsTableProps) {
     if (index === null) {
       params.delete("lead");
     } else {
-      params.set("lead", data[index].email);
+      params.set("tab", tabKey);
+      params.set("lead", getDrawerRouteLead(data[index]));
     }
     const query = params.toString();
     router.replace(query ? `${pathname}?${query}` : pathname, {

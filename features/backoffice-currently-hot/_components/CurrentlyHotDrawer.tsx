@@ -14,7 +14,7 @@ import {
   TypeBadge,
 } from "@/components/ui";
 import type { Column } from "@/components/ui/Table";
-import { getCompanySymbol, type LeadRow } from "../_lib/data";
+import { getCompanySymbol, getLeadId, type LeadRow } from "../_lib/data";
 import { ChevronDown, ChevronUp, Link, Printer } from "lucide-react";
 import { isValidElement, useEffect, useMemo, useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
@@ -172,7 +172,7 @@ export function CurrentlyHotDrawer({
     if (!row || typeof window === "undefined") return "";
 
     const params = new URLSearchParams(searchParams.toString());
-    params.set("lead", row.email);
+    params.set("lead", getLeadId(row));
 
     return `${window.location.origin}${pathname}?${params.toString()}`;
   }, [pathname, row, searchParams]);

@@ -16,6 +16,10 @@ import {
   timezoneOptions,
 } from "../_lib/data";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import {
+  findDrawerRouteIndex,
+  getDrawerRouteLead,
+} from "@/features/backoffice-shared/drawer-route";
 
 type CurrentlyHotTableProps = {
   data: LeadRow[];
@@ -39,8 +43,7 @@ export function CurrentlyHotTable({
       return null;
     }
 
-    const nextIndex = data.findIndex((row) => row.email === selectedLead);
-    return nextIndex >= 0 ? nextIndex : null;
+    return findDrawerRouteIndex(data, selectedLead);
   }, [data, searchParams]);
 
   const updateRouteForIndex = (index: number | null) => {
@@ -49,7 +52,7 @@ export function CurrentlyHotTable({
     if (index === null) {
       params.delete("lead");
     } else {
-      params.set("lead", data[index].email);
+      params.set("lead", getDrawerRouteLead(data[index]));
     }
 
     const query = params.toString();

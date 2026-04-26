@@ -1,4 +1,4 @@
-import { COMPANY, getRandomCompany } from "./company.types";
+import { COMPANY, COMPANY_VALUES, getRandomCompany } from "./company.types";
 import { CONTACT_TYPE, getRandomContactType } from "./contact-type.types";
 import { LEAD_TYPE, getRandomLeadType } from "./lead-type.types";
 
@@ -232,15 +232,34 @@ function randomDate() {
   return new Date(Date.now() - Math.floor(Math.random() * 10000000000)).toISOString();
 }
 
-export function generateRandomLeads(count: number): LEAD[] {
-  const leads: LEAD[] = [];
+function withDeterministicRandom<T>(callback: () => T): T {
+  const originalRandom = Math.random;
+  let seed = 20260426;
 
-  for (let i = 0; i < count; i++) {
+  Math.random = () => {
+    seed = (seed * 1664525 + 1013904223) % 4294967296;
+    return seed / 4294967296;
+  };
+
+  try {
+    return callback();
+  } finally {
+    Math.random = originalRandom;
+  }
+}
+
+export function generateRandomLeads(count: number): LEAD[] {
+  return withDeterministicRandom(() => {
+    const leads: LEAD[] = [];
+
+    for (let i = 0; i < count; i++) {
     const firstName = getRandomItem(FIRST_NAMES);
     const lastName = getRandomItem(LAST_NAMES);
     const fullName = `${firstName} ${lastName}`;
-    const company = getRandomCompany();
-    const leadId = `LD-${Date.now()}-${i}`;
+    const company =
+      i === 0 ? { ...COMPANY_VALUES[9] } : getRandomCompany();
+    const leadType = i === 0 ? "Can't Locate" : getRandomLeadType();
+    const leadId = `LD-20260426-${i}`;
     const agentName = getRandomItem(AGENT_NAMES);
 
     const lead: LEAD = {
@@ -259,7 +278,7 @@ export function generateRandomLeads(count: number): LEAD[] {
 
       // Contact & lead classification
       contact_type: getRandomContactType(),
-      lead_type: getRandomLeadType(),
+      lead_type: leadType,
 
       // Sidago call/notes
       call_result_sidago: getRandomItem(CALL_RESULTS),
@@ -397,8 +416,9 @@ export function generateRandomLeads(count: number): LEAD[] {
       created_by: getRandomItem(AGENT_NAMES),
     };
 
-    leads.push(lead);
-  }
+      leads.push(lead);
+    }
 
-  return leads;
+    return leads;
+  });
 }

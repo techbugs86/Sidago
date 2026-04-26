@@ -10,12 +10,35 @@ import { blockedEmailRows, BlockedEmailRow } from "../_lib/data";
 
 export function BlockedEmail() {
   const [rows, setRows] = useState<BlockedEmailRow[]>(blockedEmailRows);
-  const [selectedRow, setSelectedRow] = useState<BlockedEmailRow | null>(null);
+  const [drawerState, setDrawerState] = useState<{
+    original: BlockedEmailRow | null;
+    draft: BlockedEmailRow | null;
+  }>({
+    original: null,
+    draft: null,
+  });
 
   const unblockRow = (row: BlockedEmailRow) => {
     setRows((current) => current.filter((item) => item.id !== row.id));
-    setSelectedRow(null);
+    setDrawerState({ original: null, draft: null });
     showSuccessToast(`${row.blockedEmail} has been unblocked.`);
+  };
+
+  const saveDraft = () => {
+    if (!drawerState.draft) return;
+
+    const nextRow = {
+      ...drawerState.draft,
+      email: drawerState.draft.email.trim(),
+      blockedEmail: drawerState.draft.blockedEmail.trim(),
+      reason: drawerState.draft.reason.trim(),
+    };
+
+    setRows((current) =>
+      current.map((row) => (row.id === nextRow.id ? nextRow : row)),
+    );
+    showSuccessToast("Blocked email entry updated successfully.");
+    setDrawerState({ original: nextRow, draft: nextRow });
   };
 
   const columns = useMemo<Column<BlockedEmailRow>[]>(
@@ -61,11 +84,30 @@ export function BlockedEmail() {
         title="Blocked Email"
         description="Review and manage blocked email addresses across the system"
         emptyText="No blocked emails found."
-        onRowClick={setSelectedRow}
+        onRowClick={(row) =>
+          setDrawerState({ original: { ...row }, draft: { ...row } })
+        }
       />
       <BlockedEmailDrawer
-        row={selectedRow}
-        onClose={() => setSelectedRow(null)}
+        row={drawerState.draft}
+        onCancel={() => setDrawerState({ original: null, draft: null })}
+        onChange={(field, value) =>
+          setDrawerState((current) =>
+            current.draft
+              ? {
+                  ...current,
+                  draft: { ...current.draft, [field]: value },
+                }
+              : current,
+          )
+        }
+        onReset={() =>
+          setDrawerState((current) => ({
+            ...current,
+            draft: current.original ? { ...current.original } : null,
+          }))
+        }
+        onSave={saveDraft}
         onUnblock={unblockRow}
       />
     </div>
