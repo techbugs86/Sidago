@@ -103,7 +103,7 @@ function SelectOptionsPanel({
               onChange={(event) => setSearch(event.target.value)}
               onKeyDown={(event) => event.stopPropagation()}
               placeholder={searchPlaceholder}
-              className="h-9 w-full rounded border border-slate-200 bg-white pl-8 pr-3 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-indigo-500 dark:border-slate-700 dark:bg-gray-900 dark:text-slate-100 dark:placeholder:text-slate-500"
+              className="h-9 w-full rounded border border-slate-200 bg-white pl-8 pr-3 text-sm text-slate-700 shadow-none outline-none transition placeholder:text-slate-400 focus:border-indigo-500 focus:ring-0 dark:border-slate-700 dark:bg-gray-900 dark:text-slate-100 dark:placeholder:text-slate-500"
             />
           </div>
         </div>
@@ -182,7 +182,7 @@ function SelectControl({
         id={id}
         onClick={updatePlacement}
         className={clsx(
-          "relative w-full cursor-pointer rounded border bg-white pr-8 text-left text-slate-900 transition focus:border-indigo-500 focus:outline-none dark:bg-gray-800 dark:text-gray-100 dark:focus:border-indigo-400",
+          "relative w-full appearance-none cursor-pointer rounded border bg-white pr-8 text-left text-slate-900 shadow-none transition focus:border-indigo-500 focus:outline-none focus:ring-0 focus-visible:outline-none focus-visible:ring-0 dark:bg-gray-800 dark:text-gray-100 dark:focus:border-indigo-400",
           error ? "border-red-500" : "border-gray-300 dark:border-gray-600",
           "px-4 py-2",
           className,
