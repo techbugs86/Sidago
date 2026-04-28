@@ -113,8 +113,17 @@ export function leadToClosedContactRow(lead: LEAD): {
   bentonLeadType: string;
   svgToBeCalledBy: string;
   bentonToBeCalledBy: string;
+  callBackDate: string;
   lastActionDate: string;
 } {
+  const followUpIso =
+    lead.next_follow_up_date_sidago ??
+    lead.follow_up_date ??
+    lead.next_follow_up_date_benton ??
+    lead.follow_up_date_benton ??
+    lead.next_follow_up_date_95rm ??
+    lead.follow_up_date_95rm;
+
   return {
     lead: lead.lead_type ?? "",
     companyName: lead.company?.name ?? "",
@@ -127,6 +136,7 @@ export function leadToClosedContactRow(lead: LEAD): {
     bentonLeadType: lead.lead_type_benton ?? "",
     svgToBeCalledBy: lead.to_be_called_by_sidago ?? "",
     bentonToBeCalledBy: lead.to_be_called_by_benton ?? "",
+    callBackDate: isoToDate(followUpIso),
     lastActionDate: isoToActionDate(lead["last_action_date(svg,benton)"]),
   };
 }

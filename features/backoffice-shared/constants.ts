@@ -1,3 +1,7 @@
+import { CONTACT_TYPE_VALUES } from "@/types/contact-type.types";
+import { LEAD_TYPE_VALUES } from "@/types/lead-type.types";
+import { TIMEZONE_OPTIONS } from "@/types/timezone.types";
+
 export const leadOptions = [
   "Interested",
   "Qualified",
@@ -7,18 +11,9 @@ export const leadOptions = [
   "Re-Engaged",
 ];
 
-export const contactTypeOptions = [
-  "Prospecting",
-  "Interested",
-  "Not Interested",
-  "No Answer",
-  "Left Message",
-  "Call Lead Back",
-  "Bad Number",
-  "DNC",
-];
+export const contactTypeOptions = CONTACT_TYPE_VALUES;
 
-export const leadTypeOptions = ["Hot", "Warm", "Cold", "General", "Referral"];
+export const leadTypeOptions = LEAD_TYPE_VALUES;
 
 export const assigneeOptions = [
   "Hasib",
@@ -29,16 +24,9 @@ export const assigneeOptions = [
   "Tanvir",
 ];
 
-export const timezoneOptions = [
-  "EST",
-  "PST",
-  "CST",
-  "MST",
-  "GMT",
-  "CET",
-  "IST",
-  "JST",
-];
+export const timezoneOptions = TIMEZONE_OPTIONS.map((option) =>
+  option.value.replace(/^\d+-/, ""),
+);
 
 export function getCompanySymbol(companyName: string): string {
   const words = companyName

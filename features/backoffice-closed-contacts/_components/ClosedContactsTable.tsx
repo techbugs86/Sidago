@@ -118,6 +118,7 @@ export function ClosedContactsTable({
         type: "select",
         options: assigneeOptions.map((value) => ({ label: value, value })),
       },
+      { title: "Call Back Date", key: "callBackDate" },
       { title: "Last Action Date", key: "lastActionDate" },
     ],
     [data],

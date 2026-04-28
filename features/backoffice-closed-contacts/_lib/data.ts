@@ -12,6 +12,7 @@ export type ClosedContactRow = {
   bentonLeadType: string;
   svgToBeCalledBy: string;
   bentonToBeCalledBy: string;
+  callBackDate: string;
   lastActionDate: string;
 };
 
