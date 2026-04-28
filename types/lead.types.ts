@@ -232,6 +232,14 @@ function randomDate() {
   return new Date(Date.now() - Math.floor(Math.random() * 10000000000)).toISOString();
 }
 
+function randomFutureDate(maxDaysAhead = 14) {
+  const daysAhead = Math.floor(Math.random() * maxDaysAhead) + 1;
+  const future = new Date();
+  future.setDate(future.getDate() + daysAhead);
+  future.setHours(9 + randomInt(8), randomInt(60), 0, 0);
+  return future.toISOString();
+}
+
 export function generateRandomLeads(count: number): LEAD[] {
   const leads: LEAD[] = [];
 
@@ -264,10 +272,10 @@ export function generateRandomLeads(count: number): LEAD[] {
       // Sidago call/notes
       call_result_sidago: getRandomItem(CALL_RESULTS),
       to_be_called_by_sidago: agentName,
-      follow_up_date: randomDate(),
+      follow_up_date: randomFutureDate(),
       call_result_code: getRandomItem(CALL_RESULT_CODES),
       to_be_logged: randomBool(),
-      next_follow_up_date_sidago: randomDate(),
+      next_follow_up_date_sidago: randomFutureDate(),
       call_notes_sidago: getRandomItem(CALL_NOTES_POOL),
       history_calls_sidago: getRandomItem(HISTORY_POOL),
       date_become_hot: randomDate(),
@@ -277,10 +285,10 @@ export function generateRandomLeads(count: number): LEAD[] {
       lead_type_benton: getRandomLeadType(),
       call_result_benton: getRandomItem(CALL_RESULTS),
       to_be_called_by_benton: getRandomItem(AGENT_NAMES),
-      follow_up_date_benton: randomDate(),
+      follow_up_date_benton: randomFutureDate(),
       call_result_code_benton: getRandomItem(CALL_RESULT_CODES),
       to_be_logged_benton: randomBool(),
-      next_follow_up_date_benton: randomDate(),
+      next_follow_up_date_benton: randomFutureDate(),
       call_notes_benton: getRandomItem(CALL_NOTES_POOL),
       history_call_notes_benton: getRandomItem(HISTORY_POOL),
       history_calls_benton: getRandomItem(HISTORY_POOL),
@@ -368,7 +376,7 @@ export function generateRandomLeads(count: number): LEAD[] {
       days_hot_95rm: randomInt(30),
       days_ignore_95rm: randomInt(15),
       email_status_taylor_95rm: getRandomItem(EMAIL_STATUSES),
-      follow_up_date_95rm: randomDate(),
+      follow_up_date_95rm: randomFutureDate(),
       history_call_notes_95rm: getRandomItem(HISTORY_POOL),
       history_calls_95rm: getRandomItem(HISTORY_POOL),
       history_email_taylor_95rm: getRandomItem(HISTORY_POOL),
@@ -377,7 +385,7 @@ export function generateRandomLeads(count: number): LEAD[] {
       last_called_date_95rm: randomDate(),
       last_updated_to_be_called_by_95rm: randomDate(),
       lead_type_95rm: getRandomLeadType(),
-      next_follow_up_date_95rm: randomDate(),
+      next_follow_up_date_95rm: randomFutureDate(),
       previous_lead_type_95rm: getRandomLeadType(),
       "email(from_to_be_called_by_95rm)": randomEmail(getRandomItem(AGENT_NAMES)),
       "name(from_to_be_called_by_95rm)": getRandomItem(FIRST_NAMES),

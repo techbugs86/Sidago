@@ -125,7 +125,7 @@ function getEditableState(row: ClosedContactRow): EditableClosedContactState {
     notes: "",
     additionalContacts: "",
     doesNotWorkAnymore: false,
-    callBackDate: "",
+    callBackDate: row.callBackDate,
     selectedOutcome: "",
   };
 }
