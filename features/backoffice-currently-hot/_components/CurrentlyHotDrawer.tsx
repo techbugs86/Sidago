@@ -22,6 +22,7 @@ import { COMPANY_VALUES } from "@/types/company.types";
 import { CONTACT_TYPE_VALUES } from "@/types/contact-type.types";
 import { LEAD_TYPE_VALUES } from "@/types/lead-type.types";
 import { showSuccessToast } from "@/lib/toast";
+import Revisions from "@/features/backoffice-shared/Revisions";
 
 type CurrentlyHotSvgDrawerProps = {
   data: LeadRow[];
@@ -96,14 +97,35 @@ function stripTimezonePrefix(timezone: string | undefined) {
 }
 
 function ToggleField({
+  isEditMode,
   checked,
   label,
   onChange,
+  onEditStart,
 }: {
+  isEditMode: boolean;
   checked: boolean;
   label: string;
   onChange: (checked: boolean) => void;
+  onEditStart: () => void;
 }) {
+  if (!isEditMode) {
+    return (
+      <div className="flex items-center justify-between gap-3">
+        <span className="text-sm font-medium text-slate-700 dark:text-slate-200">
+          {label}
+        </span>
+        <button
+          type="button"
+          onClick={onEditStart}
+          className="min-w-16 cursor-pointer rounded border border-gray-300 bg-white px-3 py-1.5 text-left text-xs font-semibold text-slate-600 transition hover:border-slate-300 dark:border-gray-600 dark:bg-gray-800 dark:text-slate-200"
+        >
+          {checked ? "Yes" : "No"}
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="flex items-center justify-between gap-3">
       <span className="text-sm font-medium text-slate-700 dark:text-slate-200">
@@ -136,6 +158,7 @@ export function CurrentlyHotDrawer({
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [copied, setCopied] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
   const [formState, setFormState] = useState<{
     key: string;
     value: EditableDrawerState;
@@ -213,6 +236,10 @@ export function CurrentlyHotDrawer({
     return () => window.clearTimeout(timer);
   }, [copied]);
 
+  useEffect(() => {
+    setIsEditMode(false);
+  }, [rowKey]);
+
   if (!row || selectedIndex === null || !form) return null;
 
   const currentIndex = selectedIndex;
@@ -240,6 +267,12 @@ export function CurrentlyHotDrawer({
 
   const handleSave = () => {
     showSuccessToast("Lead changes saved successfully.");
+    setIsEditMode(false);
+  };
+
+  const handleDrawerClose = () => {
+    setIsEditMode(false);
+    onClose();
   };
 
   const handleCopyUrl = async () => {
@@ -295,7 +328,7 @@ export function CurrentlyHotDrawer({
   return (
     <Drawer
       isOpen={selectedIndex !== null}
-      onClose={onClose}
+      onClose={handleDrawerClose}
       direction="right"
       size="560px"
       header={
@@ -353,11 +386,15 @@ export function CurrentlyHotDrawer({
         </div>
       }
       footer={
-        <EditableDrawerFooter
-          onCancel={onClose}
-          onReset={handleReset}
-          onSave={handleSave}
-        />
+        isEditMode ? (
+          <EditableDrawerFooter
+            onCancel={handleDrawerClose}
+            onReset={handleReset}
+            onSave={handleSave}
+          />
+        ) : (
+          <Revisions />
+        )
       }
     >
       <div className="space-y-5">
@@ -369,7 +406,7 @@ export function CurrentlyHotDrawer({
                 index={data.findIndex((item) => item.email === row.email)}
                 className="rounded"
               />
-              <EditableField label="Company">
+              <EditableField label="Company" isEditMode={isEditMode} onEditStart={() => setIsEditMode(true)}>
                 <Select
                   value={form.companyName}
                   onChange={(value) => updateForm("companyName", String(value))}
@@ -387,28 +424,28 @@ export function CurrentlyHotDrawer({
         </DetailCard>
 
         <DetailCard label="Personal Details">
-          <EditableField label="Full Name">
+          <EditableField label="Full Name" isEditMode={isEditMode} onEditStart={() => setIsEditMode(true)}>
             <TextInput
               value={form.fullName}
               onChange={(event) => updateForm("fullName", event.target.value)}
               className="text-xs font-semibold"
             />
           </EditableField>
-          <EditableField label="Role">
+          <EditableField label="Role" isEditMode={isEditMode} onEditStart={() => setIsEditMode(true)}>
             <TextInput
               value={form.role}
               onChange={(event) => updateForm("role", event.target.value)}
               className="text-xs font-semibold"
             />
           </EditableField>
-          <EditableField label="Phone">
+          <EditableField label="Phone" isEditMode={isEditMode} onEditStart={() => setIsEditMode(true)}>
             <TextInput
               value={form.phone}
               onChange={(event) => updateForm("phone", event.target.value)}
               className="text-xs font-semibold"
             />
           </EditableField>
-          <EditableField label="Email">
+          <EditableField label="Email" isEditMode={isEditMode} onEditStart={() => setIsEditMode(true)}>
             <TextInput
               type="email"
               value={form.email}
@@ -419,7 +456,7 @@ export function CurrentlyHotDrawer({
         </DetailCard>
 
         <DetailCard label="Lead Details">
-          <EditableField label="Contact Type">
+          <EditableField label="Contact Type" isEditMode={isEditMode} onEditStart={() => setIsEditMode(true)}>
             <Select
               value={form.contactType}
               onChange={(value) => updateForm("contactType", String(value))}
@@ -430,15 +467,17 @@ export function CurrentlyHotDrawer({
           </EditableField>
           <div className="py-1.5">
             <ToggleField
+              isEditMode={isEditMode}
               label="Not Work Anymore"
               checked={form.notWorked}
               onChange={(checked) => updateForm("notWorked", checked)}
+              onEditStart={() => setIsEditMode(true)}
             />
           </div>
         </DetailCard>
 
         <DetailCard label="Other Contacts">
-          <EditableField label="Contacts" align="stack">
+          <EditableField label="Contacts" align="stack" isEditMode={isEditMode} onEditStart={() => setIsEditMode(true)}>
             <Textarea
               value={form.otherContacts}
               onChange={(event) =>
@@ -450,7 +489,7 @@ export function CurrentlyHotDrawer({
         </DetailCard>
 
         <DetailCard label="SVG Details">
-          <EditableField label="Lead Type">
+          <EditableField label="Lead Type" isEditMode={isEditMode} onEditStart={() => setIsEditMode(true)}>
             <Select
               value={form.svgLeadType}
               onChange={(value) => updateForm("svgLeadType", String(value))}
@@ -459,7 +498,7 @@ export function CurrentlyHotDrawer({
               className="py-1.5 text-xs"
             />
           </EditableField>
-          <EditableField label="To Be Called By">
+          <EditableField label="To Be Called By" isEditMode={isEditMode} onEditStart={() => setIsEditMode(true)}>
             <Select
               value={form.svgToBeCalledBy}
               onChange={(value) => updateForm("svgToBeCalledBy", String(value))}
@@ -468,7 +507,7 @@ export function CurrentlyHotDrawer({
               className="py-1.5 text-xs"
             />
           </EditableField>
-          <EditableField label="To Be Called On">
+          <EditableField label="To Be Called On" isEditMode={isEditMode} onEditStart={() => setIsEditMode(true)}>
             <DateInput
               value={form.svgToBeCalledOn}
               onChange={(event) =>
@@ -477,7 +516,7 @@ export function CurrentlyHotDrawer({
               className="text-xs font-semibold"
             />
           </EditableField>
-          <EditableField label="History Calls" align="stack">
+          <EditableField label="History Calls" align="stack" isEditMode={isEditMode} onEditStart={() => setIsEditMode(true)}>
             <Textarea
               value={form.svgHistoryCalls}
               onChange={(event) =>
@@ -486,7 +525,7 @@ export function CurrentlyHotDrawer({
               className="text-xs font-semibold leading-5"
             />
           </EditableField>
-          <EditableField label="History Notes" align="stack">
+          <EditableField label="History Notes" align="stack" isEditMode={isEditMode} onEditStart={() => setIsEditMode(true)}>
             <Textarea
               value={form.svgHistoryNotes}
               onChange={(event) =>
@@ -498,7 +537,7 @@ export function CurrentlyHotDrawer({
         </DetailCard>
 
         <DetailCard label="Benton Details">
-          <EditableField label="Lead Type">
+          <EditableField label="Lead Type" isEditMode={isEditMode} onEditStart={() => setIsEditMode(true)}>
             <Select
               value={form.bentonLeadType}
               onChange={(value) => updateForm("bentonLeadType", String(value))}
@@ -507,7 +546,7 @@ export function CurrentlyHotDrawer({
               className="py-1.5 text-xs"
             />
           </EditableField>
-          <EditableField label="To Be Called By">
+          <EditableField label="To Be Called By" isEditMode={isEditMode} onEditStart={() => setIsEditMode(true)}>
             <Select
               value={form.bentonToBeCalledBy}
               onChange={(value) =>
@@ -518,7 +557,7 @@ export function CurrentlyHotDrawer({
               className="py-1.5 text-xs"
             />
           </EditableField>
-          <EditableField label="To Be Called On">
+          <EditableField label="To Be Called On" isEditMode={isEditMode} onEditStart={() => setIsEditMode(true)}>
             <DateInput
               value={form.bentonToBeCalledOn}
               onChange={(event) =>
@@ -527,7 +566,7 @@ export function CurrentlyHotDrawer({
               className="text-xs font-semibold"
             />
           </EditableField>
-          <EditableField label="History Calls" align="stack">
+          <EditableField label="History Calls" align="stack" isEditMode={isEditMode} onEditStart={() => setIsEditMode(true)}>
             <Textarea
               value={form.bentonHistoryCalls}
               onChange={(event) =>
@@ -536,7 +575,7 @@ export function CurrentlyHotDrawer({
               className="text-xs font-semibold leading-5"
             />
           </EditableField>
-          <EditableField label="History Notes" align="stack">
+          <EditableField label="History Notes" align="stack" isEditMode={isEditMode} onEditStart={() => setIsEditMode(true)}>
             <Textarea
               value={form.bentonHistoryNotes}
               onChange={(event) =>
@@ -594,12 +633,15 @@ function EditableField({
   label,
   children,
   align = "row",
+  isEditMode,
+  onEditStart,
 }: {
   label: string;
   children: React.ReactNode;
   align?: "row" | "stack";
+  isEditMode: boolean;
+  onEditStart: () => void;
 }) {
-  const [isEditing, setIsEditing] = useState(false);
   const preview = getEditablePreview(label, children);
 
   return (
@@ -614,17 +656,17 @@ function EditableField({
         {label}
       </p>
       <div className={align === "stack" ? "w-full" : "w-64 max-w-[65%]"}>
-        {isEditing ? (
+        {isEditMode ? (
           children
         ) : (
           <div
             role="button"
             tabIndex={0}
-            onClick={() => setIsEditing(true)}
+            onClick={onEditStart}
             onKeyDown={(event) => {
               if (event.key === "Enter" || event.key === " ") {
                 event.preventDefault();
-                setIsEditing(true);
+                onEditStart();
               }
             }}
             className={`w-full cursor-text rounded border border-gray-300 bg-white text-xs font-semibold text-slate-600 transition focus:border-indigo-500 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-slate-200 ${
