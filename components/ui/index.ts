@@ -10,6 +10,9 @@ export {
 export { Button } from "./Button";
 export { CheckboxInput } from "./CheckboxInput";
 export { DateInput } from "./DateInput";
+export { DatePicker } from "./DatePicker";
+export { DatePickerField } from "./DatePickerField";
+export { DateRangePicker } from "./DateRangePicker";
 export { Drawer } from "./Drawer";
 export type { DrawerProps, DrawerDirection } from "./Drawer";
 export { DrawerActionHeader } from "./DrawerActionHeader";

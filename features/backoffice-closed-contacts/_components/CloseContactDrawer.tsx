@@ -3,7 +3,7 @@
 import {
   CheckboxInput,
   CompanySymbolBadge,
-  DateInput,
+  DatePickerField,
   Drawer,
   EditableDrawerFooter,
   EmailLink,
@@ -438,11 +438,9 @@ export function ClosedContactDrawer({
             />
           </EditableField>
           <EditableField label="Call Back Date">
-            <DateInput
+            <DatePickerField
               value={form.callBackDate}
-              onChange={(event) =>
-                updateForm("callBackDate", event.target.value)
-              }
+              onChange={(value) => updateForm("callBackDate", value)}
               className="text-xs font-semibold"
             />
           </EditableField>

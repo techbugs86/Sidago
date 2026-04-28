@@ -2,7 +2,7 @@
 
 import {
   CompanySymbolBadge,
-  DateInput,
+  DatePickerField,
   Drawer,
   EditableField,
   EditableDrawerFooter,
@@ -385,20 +385,16 @@ export function RecentInterestDrawer({
             />
           </EditableField>
           <EditableField label="Followup Date">
-            <DateInput
+            <DatePickerField
               value={form.followUpDateCleaned}
-              onChange={(event) =>
-                updateForm("followUpDateCleaned", event.target.value)
-              }
+              onChange={(value) => updateForm("followUpDateCleaned", value)}
               className="text-xs font-semibold"
             />
           </EditableField>
           <EditableField label="Followup Date(Cleaned)">
-            <DateInput
+            <DatePickerField
               value={form.followUpDateCleaned}
-              onChange={(event) =>
-                updateForm("followUpDateCleaned", event.target.value)
-              }
+              onChange={(value) => updateForm("followUpDateCleaned", value)}
               className="text-xs font-semibold"
             />
           </EditableField>
@@ -444,4 +440,3 @@ function DetailCard({
     </div>
   );
 }
-

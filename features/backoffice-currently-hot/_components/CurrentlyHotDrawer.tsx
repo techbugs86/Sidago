@@ -2,7 +2,7 @@
 
 import {
   CompanySymbolBadge,
-  DateInput,
+  DatePickerField,
   Drawer,
   EditableDrawerFooter,
   EmailLink,
@@ -510,11 +510,9 @@ export function CurrentlyHotDrawer({
             />
           </EditableField>
           <EditableField label="To Be Called On" isEditMode={isEditMode} onEditStart={handleEditStart}>
-            <DateInput
+            <DatePickerField
               value={form.svgToBeCalledOn}
-              onChange={(event) =>
-                updateForm("svgToBeCalledOn", event.target.value)
-              }
+              onChange={(value) => updateForm("svgToBeCalledOn", value)}
               className="text-xs font-semibold"
             />
           </EditableField>
@@ -560,11 +558,9 @@ export function CurrentlyHotDrawer({
             />
           </EditableField>
           <EditableField label="To Be Called On" isEditMode={isEditMode} onEditStart={handleEditStart}>
-            <DateInput
+            <DatePickerField
               value={form.bentonToBeCalledOn}
-              onChange={(event) =>
-                updateForm("bentonToBeCalledOn", event.target.value)
-              }
+              onChange={(value) => updateForm("bentonToBeCalledOn", value)}
               className="text-xs font-semibold"
             />
           </EditableField>

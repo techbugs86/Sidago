@@ -1,7 +1,10 @@
 "use client";
 import { Popover, PopoverButton, PopoverPanel } from "@headlessui/react";
 import React, { useMemo, useRef, useState } from "react";
+import { type DateRange } from "react-day-picker";
 import { Input } from "./Input";
+import { DateInput } from "./DateInput";
+import { DateRangePicker } from "./DateRangePicker";
 import { Select } from "./Select";
 import { EmailLink } from "./EmailLink";
 import {
@@ -47,6 +50,10 @@ type FilterOperator =
   | "does_not_contain"
   | "is"
   | "is_not"
+  | "is_on"
+  | "is_before"
+  | "is_after"
+  | "is_between"
   | "is_empty"
   | "is_not_empty";
 type FilterGate = "AND" | "OR";
@@ -90,6 +97,7 @@ type GroupNode<T> = {
 };
 
 const GROUP_DEPTH_CAN_CREATE_CHILD_GROUPS = 1;
+const DATE_RANGE_VALUE_SEPARATOR = "___to___";
 
 function getCellValue<T>(row: T, column: Column<T> | (keyof T | string)) {
   if (typeof column === "object" && column !== null && "key" in column) {
@@ -121,20 +129,26 @@ function renderCellValue<T>(row: T, column: Column<T>) {
   return value;
 }
 
-function createFilterCondition(field = ""): FilterCondition {
+function createFilterCondition(
+  field = "",
+  operator: FilterOperator = "contains",
+): FilterCondition {
   return {
     id: Math.random().toString(36).slice(2, 9),
     field,
-    operator: "contains",
+    operator,
     value: "",
   };
 }
 
-function createFilterItem(field = ""): FilterItem {
+function createFilterItem(
+  field = "",
+  operator: FilterOperator = "contains",
+): FilterItem {
   return {
     id: Math.random().toString(36).slice(2, 9),
     type: "condition",
-    condition: createFilterCondition(field),
+    condition: createFilterCondition(field, operator),
   };
 }
 
@@ -156,6 +170,92 @@ function createSortRule(field = ""): SortRule {
 
 function operatorNeedsValue(operator: FilterOperator) {
   return operator !== "is_empty" && operator !== "is_not_empty";
+}
+
+function getColumnType<T>(column?: Column<T> | null) {
+  return column?.type ?? "text";
+}
+
+function getDefaultOperatorForColumnType(columnType: Column<unknown>["type"]) {
+  return columnType === "date" ? "is_on" : "contains";
+}
+
+function getFilterOperatorOptions(columnType: Column<unknown>["type"]) {
+  if (columnType === "date") {
+    return [
+      { label: "is on", value: "is_on" },
+      { label: "is before", value: "is_before" },
+      { label: "is after", value: "is_after" },
+      { label: "is between", value: "is_between" },
+      { label: "is empty", value: "is_empty" },
+      { label: "is not empty", value: "is_not_empty" },
+    ];
+  }
+
+  return [
+    { label: "contains", value: "contains" },
+    { label: "does not contain", value: "does_not_contain" },
+    { label: "is", value: "is" },
+    { label: "is not", value: "is_not" },
+    { label: "is empty", value: "is_empty" },
+    { label: "is not empty", value: "is_not_empty" },
+  ];
+}
+
+function normalizeDateValue(value: React.ReactNode) {
+  if (value === null || value === undefined) {
+    return null;
+  }
+
+  if (value instanceof Date && !Number.isNaN(value.getTime())) {
+    return value.toISOString().slice(0, 10);
+  }
+
+  const text = String(value).trim();
+
+  if (!text) {
+    return null;
+  }
+
+  const directMatch = text.match(/\d{4}-\d{2}-\d{2}/);
+
+  if (directMatch) {
+    return directMatch[0];
+  }
+
+  const parsed = new Date(text);
+
+  if (Number.isNaN(parsed.getTime())) {
+    return null;
+  }
+
+  return parsed.toISOString().slice(0, 10);
+}
+
+function parseDateRangeFilterValue(value: string): DateRange | undefined {
+  const [fromValue = "", toValue = ""] = value.split(DATE_RANGE_VALUE_SEPARATOR);
+  const from = fromValue ? new Date(fromValue) : undefined;
+  const to = toValue ? new Date(toValue) : undefined;
+
+  if (
+    (from && Number.isNaN(from.getTime())) ||
+    (to && Number.isNaN(to.getTime()))
+  ) {
+    return undefined;
+  }
+
+  if (!from && !to) {
+    return undefined;
+  }
+
+  return { from, to };
+}
+
+function serializeDateRangeFilterValue(value: DateRange | undefined) {
+  const from = value?.from ? value.from.toISOString().slice(0, 10) : "";
+  const to = value?.to ? value.to.toISOString().slice(0, 10) : "";
+
+  return `${from}${DATE_RANGE_VALUE_SEPARATOR}${to}`;
 }
 
 export function Table<T>({
@@ -221,13 +321,58 @@ export function Table<T>({
         (!operatorNeedsValue(condition.operator) || condition.value.trim());
 
       const matchesCondition = (condition: FilterCondition) => {
-        const value = String(
-          getCellValue(
-            row,
-            columnMap.get(condition.field) ?? condition.field,
-          ) ?? "",
-        ).toLowerCase();
+        const column = columnMap.get(condition.field);
+        const rawValue = getCellValue(row, column ?? condition.field);
+        const columnType = getColumnType(column);
+        const value = String(rawValue ?? "").toLowerCase();
         const query = condition.value.trim().toLowerCase();
+
+        if (columnType === "date") {
+          const normalizedValue = normalizeDateValue(rawValue);
+
+          if (condition.operator === "is_empty") {
+            return !normalizedValue;
+          }
+
+          if (condition.operator === "is_not_empty") {
+            return Boolean(normalizedValue);
+          }
+
+          if (!normalizedValue) {
+            return false;
+          }
+
+          if (condition.operator === "is_between") {
+            const range = parseDateRangeFilterValue(condition.value);
+            const start = range?.from
+              ? range.from.toISOString().slice(0, 10)
+              : undefined;
+            const endDate = range?.to ?? range?.from;
+            const end = endDate ? endDate.toISOString().slice(0, 10) : undefined;
+
+            if (!start && !end) {
+              return false;
+            }
+
+            return (!start || normalizedValue >= start) && (!end || normalizedValue <= end);
+          }
+
+          if (!query) {
+            return false;
+          }
+
+          return condition.operator === "is_on"
+            ? normalizedValue === query
+            : condition.operator === "is_before"
+              ? normalizedValue < query
+              : condition.operator === "is_after"
+                ? normalizedValue > query
+                : condition.operator === "is"
+                  ? normalizedValue === query
+                  : condition.operator === "is_not"
+                    ? normalizedValue !== query
+                    : false;
+        }
 
         return condition.operator === "contains"
           ? value.includes(query)
@@ -653,14 +798,6 @@ export function Table<T>({
   const activeFilterConditionCount =
     countActiveFilterItems(filterItems) + Number(Boolean(filterSearch.trim()));
 
-  const filterOperatorOptions = [
-    { label: "contains", value: "contains" },
-    { label: "does not contain", value: "does_not_contain" },
-    { label: "is", value: "is" },
-    { label: "is not", value: "is_not" },
-    { label: "is empty", value: "is_empty" },
-    { label: "is not empty", value: "is_not_empty" },
-  ];
   const filterGateOptions = [
     { label: "and", value: "AND" },
     { label: "or", value: "OR" },
@@ -731,6 +868,11 @@ export function Table<T>({
     onChange: (condition: FilterCondition) => void;
     onRemove: () => void;
   }) => {
+    const selectedColumn = columnMap.get(condition.field);
+    const selectedColumnType = getColumnType(selectedColumn);
+    const filterOperatorOptions = getFilterOperatorOptions(selectedColumnType);
+    const selectedRange = parseDateRangeFilterValue(condition.value);
+
     return (
       <div
         key={condition.id}
@@ -740,9 +882,17 @@ export function Table<T>({
         <div className="grid min-w-0 gap-0 overflow-hidden rounded-md border border-slate-200 bg-white md:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)_minmax(0,1.25fr)_40px] dark:border-slate-700 dark:bg-slate-900">
           <Select
             value={condition.field}
-            onChange={(value) =>
-              onChange({ ...condition, field: value as string, value: "" })
-            }
+            onChange={(value) => {
+              const field = value as string;
+              const columnType = getColumnType(columnMap.get(field));
+
+              onChange({
+                ...condition,
+                field,
+                operator: getDefaultOperatorForColumnType(columnType),
+                value: "",
+              });
+            }}
             options={selectableColumns}
             placeholder=""
             className="h-10 rounded-none border-0 border-r border-slate-200 text-xs dark:border-slate-700"
@@ -769,6 +919,30 @@ export function Table<T>({
             <div className="flex h-10 items-center border-r border-dashed border-slate-200 px-3 text-xs text-slate-400 dark:border-slate-700 dark:text-slate-500">
               No value needed
             </div>
+          ) : selectedColumnType === "date" &&
+            condition.operator === "is_between" ? (
+            <div className="border-r border-slate-200 p-1 dark:border-slate-700">
+              <DateRangePicker
+                value={selectedRange}
+                onChange={(value) =>
+                  onChange({
+                    ...condition,
+                    value: serializeDateRangeFilterValue(value),
+                  })
+                }
+                placeholder="Pick a date range"
+                className="h-8 rounded-sm border-0 px-2"
+              />
+            </div>
+          ) : selectedColumnType === "date" ? (
+            <DateInput
+              value={condition.value}
+              onChange={(event) =>
+                onChange({ ...condition, value: event.target.value })
+              }
+              className="h-10 rounded-none border-0 border-r border-slate-200 bg-white py-2 pl-9 pr-4 text-xs text-slate-900 transition focus:border-indigo-500 dark:border-slate-700 dark:bg-slate-900 dark:text-gray-100"
+              iconClassName="h-3.5 w-3.5"
+            />
           ) : (
             <Input
               value={condition.value}
@@ -858,7 +1032,10 @@ export function Table<T>({
           onClick={() =>
             appendFilterItemToGroup(
               groupId,
-              createFilterItem(selectableColumns[0]?.value ?? ""),
+              createFilterItem(
+                selectableColumns[0]?.value ?? "",
+                getDefaultOperatorForColumnType(columns[0]?.type),
+              ),
             )
           }
           className="flex w-full cursor-pointer items-center gap-2 rounded-lg px-3 py-2 text-left text-xs text-slate-700 hover:bg-slate-100 dark:text-slate-200 dark:hover:bg-slate-900"
@@ -1252,7 +1429,10 @@ export function Table<T>({
                     onClick={() =>
                       setFilterItems((items) => [
                         ...items,
-                        createFilterItem(selectableColumns[0]?.value ?? ""),
+                        createFilterItem(
+                          selectableColumns[0]?.value ?? "",
+                          getDefaultOperatorForColumnType(columns[0]?.type),
+                        ),
                       ])
                     }
                     className="inline-flex items-center cursor-pointer gap-2 font-medium text-slate-600 hover:text-sky-700 dark:text-slate-300 dark:hover:text-sky-300"

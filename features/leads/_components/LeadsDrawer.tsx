@@ -2,7 +2,7 @@
 
 import {
   CompanySymbolBadge,
-  DateInput,
+  DatePickerField,
   Drawer,
   EditableDrawerFooter,
   EmailLink,
@@ -595,9 +595,9 @@ function LeadDetailsCard({
         />
       </EditableField>
       <EditableField label="To Be Called On">
-        <DateInput
+        <DatePickerField
           value={toBeCalledOn}
-          onChange={(event) => onToBeCalledOnChange(event.target.value)}
+          onChange={onToBeCalledOnChange}
           className="text-xs font-semibold"
         />
       </EditableField>
