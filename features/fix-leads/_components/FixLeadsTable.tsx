@@ -1,6 +1,11 @@
 "use client";
 
-import { Button, CompanySymbolBadge, Table, TimezoneBadge } from "@/components/ui";
+import {
+  Button,
+  CompanySymbolBadge,
+  Table,
+  TimezoneBadge,
+} from "@/components/ui";
 import { type Column } from "@/components/ui/Table";
 import { useMemo } from "react";
 import {
@@ -23,9 +28,13 @@ export function FixLeadsTable({ data, title }: FixLeadsTableProps) {
       {
         title: "Leads",
         key: "lead",
-        getValue: (row) => getLeadId({ companyName: row.companyName, lead: row.lead }),
+        getValue: (row) =>
+          getLeadId({ companyName: row.companyName, lead: row.lead }),
         type: "select",
-        options: getLeadIdOptions(data).map((value) => ({ label: value, value })),
+        options: getLeadIdOptions(data).map((value) => ({
+          label: value,
+          value,
+        })),
       },
       { title: "Company Name", key: "companyName" },
       {
@@ -33,7 +42,10 @@ export function FixLeadsTable({ data, title }: FixLeadsTableProps) {
         key: "company",
         getValue: (row) => getCompanySymbol(row.companyName),
         type: "select",
-        options: getCompanySymbolOptions(data).map((value) => ({ label: value, value })),
+        options: getCompanySymbolOptions(data).map((value) => ({
+          label: value,
+          value,
+        })),
         render: (row) => (
           <CompanySymbolBadge
             symbol={getCompanySymbol(row.companyName)}
@@ -61,7 +73,7 @@ export function FixLeadsTable({ data, title }: FixLeadsTableProps) {
         title: "Fix Lead",
         key: "fixLead",
         render: () => (
-          <Button className="inline-flex h-9 items-center justify-center rounded-full border border-sky-200 bg-sky-50 px-4 text-sm font-semibold text-sky-700 transition hover:bg-sky-100 dark:border-sky-800 dark:bg-sky-950/40 dark:text-sky-300 dark:hover:bg-sky-950/70">
+          <Button className="cursor-pointer inline-flex h-6 items-center justify-center rounded border border-blue-600 bg-blue-500 px-4 text-sm font-semibold text-white transition hover:bg-blue-600 dark:border-blue-400 dark:bg-blue-600 dark:text-white dark:hover:bg-blue-500">
             Fix
           </Button>
         ),
