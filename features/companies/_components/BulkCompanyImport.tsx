@@ -4,10 +4,7 @@ import { BulkImportPage } from "@/components/ui";
 import { downloadWorkbook } from "@/lib/excel";
 import { validateForm } from "@/lib/validation";
 import { companyValidationSchema } from "@/lib/validation/company";
-import {
-  type BulkImportFailedRow,
-  useBulkWorkbookImport,
-} from "@/hooks/useBulkWorkbookImport";
+import { useBulkWorkbookImport } from "@/hooks/useBulkWorkbookImport";
 import { COUNTRY_OPTIONS } from "@/types/country.types";
 import { TIMEZONE_OPTIONS } from "@/types/timezone.types";
 import { type COMPANY } from "@/types/company.types";
@@ -165,7 +162,7 @@ export function BulkCompanyImport() {
         kind: "object",
         name: "Import Errors",
         columns: ["rowNumber", ...TEMPLATE_COLUMNS, "errors"],
-        rows: failedRows as Array<BulkImportFailedRow<keyof COMPANY>>,
+        rows: failedRows,
       },
     ]);
   };

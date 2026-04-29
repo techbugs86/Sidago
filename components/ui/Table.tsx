@@ -40,6 +40,7 @@ type Props<T> = {
   emptyState?: React.ReactNode;
   showTableWhenEmpty?: boolean;
   showToolbarTitle?: boolean;
+  headerContent?: React.ReactNode;
   onRowClick?: (row: T) => void;
   title: string;
   description?: string;
@@ -269,6 +270,7 @@ export function Table<T>({
   emptyState,
   showTableWhenEmpty = false,
   showToolbarTitle = true,
+  headerContent,
   onRowClick,
 }: Props<T>) {
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
@@ -1191,6 +1193,7 @@ export function Table<T>({
           <div className="hidden md:block" />
         )}
         <div className="flex items-center justify-end gap-2">
+          {headerContent}
           <Popover className="relative">
             <PopoverButton className={toolbarButtonClass}>
               Group

@@ -2,11 +2,11 @@
 
 import React from "react";
 import { unassignedHotLeadsData } from "../_lib/data";
-import { UnassignedHotLeadsTable } from "./UnassignedHotTable";
+import { UnassignedHotTable } from "./UnassignedHotTable";
 
 export function UnassignedHotBenton() {
   return (
-    <UnassignedHotLeadsTable
+    <UnassignedHotTable
       data={unassignedHotLeadsData}
       title="Unassigned Hot Leads - Benton"
       variant="benton"

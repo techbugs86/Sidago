@@ -7,10 +7,7 @@ import {
   leadCreateValidationSchema,
   type LeadCreateFormValues,
 } from "@/lib/validation/lead-create";
-import {
-  type BulkImportFailedRow,
-  useBulkWorkbookImport,
-} from "@/hooks/useBulkWorkbookImport";
+import { useBulkWorkbookImport } from "@/hooks/useBulkWorkbookImport";
 import { createLeadDirectoryRow } from "../_lib/data";
 import { getStoredLeads, saveStoredLeads } from "../_lib/storage";
 
@@ -179,7 +176,7 @@ export function BulkLeadImport() {
         kind: "object",
         name: "Import Errors",
         columns: ["rowNumber", ...TEMPLATE_COLUMNS, "errors"],
-        rows: failedRows as Array<BulkImportFailedRow<keyof LeadCreateFormValues>>,
+        rows: failedRows,
       },
     ]);
   };
