@@ -1,4 +1,5 @@
 export {
+  Badge,
   BooleanCheckBadge,
   CampaignBadge,
   CompanySymbolBadge,
