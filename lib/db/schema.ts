@@ -622,7 +622,9 @@ export const auditLog = pgTable("audit_log", {
 	id: bigserial({ mode: "bigint" }).primaryKey().notNull(),
 	tableName: varchar("table_name", { length: 64 }).notNull(),
 	recordId: uuid("record_id").notNull(),
-	fieldName: varchar("field_name", { length: 128 }).notNull(),
+	fieldName: varchar("field_name", { length: 128 }),
+	operation: varchar({ length: 8 }).notNull(),
+	actorType: varchar("actor_type", { length: 16 }).notNull(),
 	oldValue: jsonb("old_value"),
 	newValue: jsonb("new_value"),
 	changeGroupId: uuid("change_group_id").notNull(),
@@ -644,6 +646,8 @@ export const auditLog = pgTable("audit_log", {
 			name: "audit_log_changed_by_user_id_fkey"
 		}).onDelete("set null"),
 	check("audit_log_check", sql`(changed_by_user_id IS NULL) OR (changed_by_automation_run_id IS NULL)`),
+	check("audit_log_operation_check", sql`operation IN ('INSERT','UPDATE','DELETE')`),
+	check("audit_log_actor_type_check", sql`actor_type IN ('user','automation','api','db_direct','migration','system')`),
 ]);
 
 export const brandLaunchEvents = pgTable("brand_launch_events", {
