@@ -139,67 +139,70 @@ export const backofficeNavigation: NavigationItem[] = [
     icon: LayoutDashboard,
   },
   {
-    label: "Currently Hot Leads - SVG",
-    href: "/currently-hot-leads-svg",
+    label: "Currently Hot Leads",
     icon: Flame,
+    children: [
+      {
+        label: "SVG",
+        href: "/currently-hot-leads-svg",
+        icon: Flame,
+      },
+      {
+        label: "95RM",
+        href: "/currently-hot-leads-95rm",
+        icon: Flame,
+      },
+      {
+        label: "Benton",
+        href: "/currently-hot-leads-benton",
+        icon: Flame,
+      },
+    ],
   },
   {
-    label: "Currently Hot Leads - 95RM",
-    href: "/currently-hot-leads-95rm",
-    icon: Flame,
-  },
-  {
-    label: "Currently Hot Leads - Benton",
-    href: "/currently-hot-leads-benton",
-    icon: Flame,
-  },
-  {
-    label: "Recent Interest - SVG",
-    href: "/recent-interest-svg",
+    label: "Recent Interest",
     icon: Clock,
+    children: [
+      {
+        label: "SVG",
+        href: "/recent-interest-svg",
+        icon: Clock,
+      },
+      {
+        label: "95RM",
+        href: "/recent-interest-95rm",
+        icon: Clock,
+      },
+      {
+        label: "Benton",
+        href: "/recent-interest-benton",
+        icon: Clock,
+      },
+    ],
   },
   {
-    label: "Recent Interest - 95RM",
-    href: "/recent-interest-95rm",
-    icon: Clock,
-  },
-  {
-    label: "Recent Interest - Benton",
-    href: "/recent-interest-benton",
-    icon: Clock,
-  },
-  {
-    label: "Unassigned Hot Leads - SVG",
-    href: "/unassigned-hot-leads-svg",
-    icon: Package,
-  },
-  {
-    label: "Unassigned Hot Leads - 95RM",
-    href: "/unassigned-hot-leads-95rm",
-    icon: Package,
-  },
-  {
-    label: "Unassigned Hot Leads - Benton",
-    href: "/unassigned-hot-leads-benton",
-    icon: Package,
-  },
-  {
-    label: "Ever Been Hot - SVG",
-    href: "/ever-been-hot-svg",
+    label: "Ever Been Hot",
     icon: RotateCcw,
+    children: [
+      {
+        label: "SVG",
+        href: "/ever-been-hot-svg",
+        icon: RotateCcw,
+      },
+      {
+        label: "95RM",
+        href: "/ever-been-hot-95rm",
+        icon: RotateCcw,
+      },
+      {
+        label: "Benton",
+        href: "/ever-been-hot-benton",
+        icon: RotateCcw,
+      },
+    ],
   },
   {
-    label: "Ever Been Hot - 95RM",
-    href: "/ever-been-hot-95rm",
-    icon: RotateCcw,
-  },
-  {
-    label: "Ever Been Hot - Benton",
-    href: "/ever-been-hot-benton",
-    icon: RotateCcw,
-  },
-  {
-    label: "Closed Contacts",
+    label: "Closed Contact",
     href: "/closed-contacts",
     icon: Lock,
   },
