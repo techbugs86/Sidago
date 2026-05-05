@@ -1,5 +1,6 @@
 import { getLeadId } from "@/features/backoffice-shared/constants";
-import { generateRandomLeads, type LEAD } from "@/types/lead.types";
+import { generateRandomLeads } from "@/lib/mocks/leads";
+import type { LEAD } from "@/types/lead.types";
 
 export type DeadMissingEmailStatus = "Needs Review" | "Updated" | "Unresolvable";
 

@@ -1,4 +1,5 @@
 export {
+  Badge,
   BooleanCheckBadge,
   CampaignBadge,
   CompanySymbolBadge,
@@ -32,8 +33,9 @@ export { Preloader } from "./Preloader";
 export { RoutePreloader } from "./RoutePreloader";
 export { SectionLabel } from "./SectionLabel";
 export { Select } from "./Select";
-export { StatusCard } from "./StatusCard";
+export { SimpleStatusCard, StatusCard } from "./StatusCard";
 export { Wave } from "./Spinner";
 export { Table } from "./Table";
 export { Textarea } from "./Textarea";
 export { TextInput } from "./TextInput";
+export { BulkImportPage } from "./bulk-import/BulkImportPage";

@@ -1,20 +1,28 @@
 import { api } from "@/lib/api";
+import type { UserRole } from "@/lib/navigation";
+
+export interface LoginResponse {
+  accessToken: string;
+  refreshToken: string;
+  user: {
+    id: string;
+    email: string;
+    name: string;
+    role: UserRole;
+  };
+}
+
+export interface MessageResponse {
+  message: string;
+}
 
 export const authApi = {
-  signup: (data: { name: string; email: string; password: string }) =>
-    api.post("/auth/signup", data),
-
-  verifyEmail: (token: string) => api.get(`/auth/verify?token=${token}`),
-
-  resendVerification: (email: string) =>
-    api.post("/auth/resend-verification", { email }),
-
   forgotPassword: (email: string) =>
-    api.post("/auth/forgot-password", { email }),
+    api.post<MessageResponse>("/auth/forgot-password", { email }),
 
   resetPassword: (data: { newPassword: string; token: string }) =>
-    api.post("/auth/reset-password", data),
+    api.post<MessageResponse>("/auth/reset-password", data),
 
   login: (data: { email: string; password: string }) =>
-    api.post("/auth/login", data),
+    api.post<LoginResponse>("/auth/login", data),
 };
