@@ -35,7 +35,6 @@ import {
 import { getStoredLeads } from "@/features/leads/_lib/storage";
 import type { LeadDirectoryRow } from "@/features/leads/_lib/data";
 import clsx from "clsx";
-import { AGENT_VALUES } from "@/types/agent.types";
 import { CONTACT_TYPE_VALUES } from "@/types/contact-type.types";
 import { LEAD_TYPE_VALUES } from "@/types/lead-type.types";
 
@@ -49,11 +48,9 @@ type LeadGroup = {
 
 type EditableCallLogState = {
   fullName: string;
-  phone: string;
   email: string;
   contactType: string;
   svgLeadType: string;
-  svgToBeCalledBy: string;
   notes: string;
   additionalContacts: string;
   doesNotWorkAnymore: boolean;
@@ -190,11 +187,9 @@ function buildGroups(rows: LeadDirectoryRow[]): LeadGroup[] {
 function getEditableState(row: LeadDirectoryRow): EditableCallLogState {
   return {
     fullName: row.fullName,
-    phone: row.phone,
     email: row.email,
     contactType: row.contactType,
     svgLeadType: row.svgLeadType || row.lead,
-    svgToBeCalledBy: row.svgToBeCalledBy,
     notes: "",
     additionalContacts: "",
     doesNotWorkAnymore: row.notWorked ?? false,
@@ -269,15 +264,6 @@ export function AgentCallLogs() {
       : selectedLead
         ? getEditableState(selectedLead)
         : null;
-
-  const agentOptions = useMemo(
-    () =>
-      AGENT_VALUES.map((agent) => ({
-        label: `${agent.name} ${agent.surname}`,
-        value: `${agent.name} ${agent.surname}`,
-      })),
-    [],
-  );
 
   const contactTypeOptions = useMemo(
     () => CONTACT_TYPE_VALUES.map((value) => ({ label: value, value })),
@@ -560,13 +546,20 @@ export function AgentCallLogs() {
                           className="text-xs font-semibold"
                         />
                       </EditableField>
+                      <EditableField label="Role">
+                        <TextInput
+                          value={selectedLead.role || "-"}
+                          readOnly
+                          tabIndex={-1}
+                          className="cursor-default text-xs font-semibold focus:border-gray-300 dark:focus:border-gray-600"
+                        />
+                      </EditableField>
                       <EditableField label="Phone">
                         <TextInput
-                          value={form.phone}
-                          onChange={(event) =>
-                            updateForm("phone", event.target.value)
-                          }
-                          className="text-xs font-semibold"
+                          value={selectedLead.phone || "-"}
+                          readOnly
+                          tabIndex={-1}
+                          className="cursor-default text-xs font-semibold focus:border-gray-300 dark:focus:border-gray-600"
                         />
                       </EditableField>
                       <EditableField label="Email">
@@ -602,16 +595,6 @@ export function AgentCallLogs() {
                           className="text-xs font-semibold"
                         />
                       </EditableField>
-                      <EditableField label="To Be Called By">
-                        <Select
-                          value={form.svgToBeCalledBy}
-                          onChange={(value) =>
-                            updateForm("svgToBeCalledBy", String(value))
-                          }
-                          options={agentOptions}
-                          className="text-xs font-semibold"
-                        />
-                      </EditableField>
                     </DetailCard>
 
                     <DetailCard label="Notes">
@@ -644,40 +627,53 @@ export function AgentCallLogs() {
                           className="text-xs font-semibold"
                         />
                       </EditableField>
+                      <EditableField label="Last Called Date">
+                        <TextInput
+                          value={selectedLead.svgLastCallDate || "-"}
+                          readOnly
+                          tabIndex={-1}
+                          className="cursor-default text-xs font-semibold focus:border-gray-300 dark:focus:border-gray-600"
+                        />
+                      </EditableField>
+                      <EditableField label="Last Fixed Date">
+                        <TextInput
+                          value={selectedLead.lastFixedDate || "-"}
+                          readOnly
+                          tabIndex={-1}
+                          className="cursor-default text-xs font-semibold focus:border-gray-300 dark:focus:border-gray-600"
+                        />
+                      </EditableField>
                     </DetailCard>
 
                     <DetailCard label="History">
                       <EditableField label="History Calls" align="stack">
                         <Textarea
                           value={form.historyCalls}
-                          onChange={(event) =>
-                            updateForm("historyCalls", event.target.value)
-                          }
+                          readOnly
                           className="text-xs font-semibold leading-5"
                         />
                       </EditableField>
                       <EditableField label="History Notes" align="stack">
                         <Textarea
                           value={form.historyNotes}
-                          onChange={(event) =>
-                            updateForm("historyNotes", event.target.value)
-                          }
+                          readOnly
                           className="text-xs font-semibold leading-5"
                         />
                       </EditableField>
                     </DetailCard>
 
                     <DetailCard label="Additional Contacts">
-                      <EditableField label="Contacts" align="stack">
-                        <Textarea
-                          value={form.additionalContacts}
-                          onChange={(event) =>
-                            updateForm("additionalContacts", event.target.value)
-                          }
-                          className="text-xs font-semibold leading-5"
-                          placeholder="Add contacts"
-                        />
-                      </EditableField>
+                      <Detail
+                        label="Contacts"
+                        value={
+                          <HistoryText
+                            value={
+                              form.additionalContacts ||
+                              "No additional contacts."
+                            }
+                          />
+                        }
+                      />
                     </DetailCard>
 
                     <DetailCard label="Call Outcome">
@@ -693,6 +689,23 @@ export function AgentCallLogs() {
                             className={outcome.className}
                           />
                         ))}
+                      </div>
+                    </DetailCard>
+
+                    <DetailCard label="All Company Contacts">
+                      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+                        <DetailCard label={selectedLead.companyName}>
+                          <AssociationDetail
+                            label="Contact Type"
+                            value={
+                              <TypeBadge value={form.contactType} kind="contact" />
+                            }
+                          />
+                          <AssociationDetail
+                            label="Lead Type"
+                            value={<TypeBadge value={form.svgLeadType} kind="lead" />}
+                          />
+                        </DetailCard>
                       </div>
                     </DetailCard>
                   </div>
@@ -749,6 +762,44 @@ function EditableField({
       </p>
       <div className={align === "stack" ? "w-full" : "w-64 max-w-[65%]"}>
         {children}
+      </div>
+    </div>
+  );
+}
+
+function Detail({ label, value }: { label: string; value: React.ReactNode }) {
+  return (
+    <div className="flex items-start justify-between gap-4 py-1">
+      <p className="shrink-0 text-[10px] uppercase tracking-widest text-slate-400">
+        {label}
+      </p>
+      <p className="truncate text-right text-xs font-semibold text-slate-600 dark:text-slate-200">
+        {value}
+      </p>
+    </div>
+  );
+}
+
+function HistoryText({ value }: { value: string }) {
+  return (
+    <span className="block whitespace-pre-line text-left leading-5">{value}</span>
+  );
+}
+
+function AssociationDetail({
+  label,
+  value,
+}: {
+  label: string;
+  value: React.ReactNode;
+}) {
+  return (
+    <div className="flex items-start justify-between gap-4 py-1">
+      <p className="shrink-0 text-[10px] uppercase tracking-widest text-slate-400">
+        {label}
+      </p>
+      <div className="min-w-0 text-right text-xs font-semibold text-slate-600 dark:text-slate-200">
+        {value}
       </div>
     </div>
   );
