@@ -5,6 +5,7 @@ import {
   Ban,
   ChevronDown,
   ChevronRight,
+  ChevronUp,
   Clock3,
   MessageCircleWarning,
   MessageSquareText,
@@ -20,6 +21,8 @@ import {
   CheckboxInput,
   CompanySymbolBadge,
   DatePickerField,
+  Drawer,
+  EditableDrawerFooter,
   EmptyState,
   Select,
   TextInput,
@@ -37,6 +40,7 @@ import type { LeadDirectoryRow } from "@/features/leads/_lib/data";
 import clsx from "clsx";
 import { CONTACT_TYPE_VALUES } from "@/types/contact-type.types";
 import { LEAD_TYPE_VALUES } from "@/types/lead-type.types";
+import { showSuccessToast } from "@/lib/toast";
 
 type LeadGroup = {
   leadType: string;
@@ -200,6 +204,15 @@ function getEditableState(row: LeadDirectoryRow): EditableCallLogState {
   };
 }
 
+function getCompanyContactKey(row: LeadDirectoryRow) {
+  return [
+    getLeadId(row),
+    row.email || "no-email",
+    row.fullName || "no-name",
+    row.phone || "no-phone",
+  ].join("__");
+}
+
 export function AgentCallLogs() {
   const [rows] = useState<LeadDirectoryRow[]>(() => getStoredLeads());
   const [search, setSearch] = useState("");
@@ -213,6 +226,11 @@ export function AgentCallLogs() {
   const [expandedTimezones, setExpandedTimezones] = useState<string[]>([]);
   const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null);
   const [formState, setFormState] = useState<{
+    key: string;
+    value: EditableCallLogState;
+  } | null>(null);
+  const [companyContactKey, setCompanyContactKey] = useState<string | null>(null);
+  const [companyContactFormState, setCompanyContactFormState] = useState<{
     key: string;
     value: EditableCallLogState;
   } | null>(null);
@@ -264,6 +282,37 @@ export function AgentCallLogs() {
       : selectedLead
         ? getEditableState(selectedLead)
         : null;
+  const allCompanyContacts = useMemo(() => {
+    if (!selectedLead) {
+      return [];
+    }
+
+    return rows
+      .filter((row) => row.companyName === selectedLead.companyName)
+      .sort((a, b) => getLeadId(a).localeCompare(getLeadId(b)));
+  }, [rows, selectedLead]);
+  const selectedCompanyContact = useMemo(() => {
+    if (!companyContactKey) {
+      return null;
+    }
+
+    return (
+      allCompanyContacts.find((row) => getCompanyContactKey(row) === companyContactKey) ??
+      null
+    );
+  }, [allCompanyContacts, companyContactKey]);
+  const selectedCompanyContactIndex = selectedCompanyContact
+    ? allCompanyContacts.findIndex(
+        (row) => getCompanyContactKey(row) === getCompanyContactKey(selectedCompanyContact),
+      )
+    : -1;
+  const selectedCompanyContactForm =
+    selectedCompanyContact &&
+    companyContactFormState?.key === getLeadId(selectedCompanyContact)
+      ? companyContactFormState.value
+      : selectedCompanyContact
+        ? getEditableState(selectedCompanyContact)
+        : null;
 
   const contactTypeOptions = useMemo(
     () => CONTACT_TYPE_VALUES.map((value) => ({ label: value, value })),
@@ -312,6 +361,59 @@ export function AgentCallLogs() {
         [key]: value,
       },
     });
+  };
+
+  const updateCompanyContactForm = <Key extends keyof EditableCallLogState>(
+    key: Key,
+    value: EditableCallLogState[Key],
+  ) => {
+    if (!selectedCompanyContact || !selectedCompanyContactForm) {
+      return;
+    }
+
+    setCompanyContactFormState({
+      key: getLeadId(selectedCompanyContact),
+      value: {
+        ...selectedCompanyContactForm,
+        [key]: value,
+      },
+    });
+  };
+
+  const openCompanyContactDrawer = (row: LeadDirectoryRow) => {
+    setCompanyContactKey(getCompanyContactKey(row));
+  };
+
+  const closeCompanyContactDrawer = () => {
+    setCompanyContactKey(null);
+  };
+
+  const resetCompanyContactDrawer = () => {
+    if (!selectedCompanyContact) {
+      return;
+    }
+
+    setCompanyContactFormState({
+      key: getLeadId(selectedCompanyContact),
+      value: getEditableState(selectedCompanyContact),
+    });
+  };
+
+  const saveCompanyContactDrawer = () => {
+    showSuccessToast("Company contact changes saved successfully.");
+  };
+
+  const navigateCompanyContactDrawer = (offset: -1 | 1) => {
+    if (selectedCompanyContactIndex < 0) {
+      return;
+    }
+
+    const nextRow = allCompanyContacts[selectedCompanyContactIndex + offset];
+    if (!nextRow) {
+      return;
+    }
+
+    setCompanyContactKey(getCompanyContactKey(nextRow));
   };
 
   if (!rows.length) {
@@ -514,201 +616,18 @@ export function AgentCallLogs() {
             <section className="min-h-0 border-t border-slate-200 dark:border-slate-700 lg:h-[calc(100vh-8.5rem)] lg:border-t-0">
               <div className="h-full overflow-y-auto p-4 sm:p-5">
                 {selectedLead && form ? (
-                  <div className="space-y-5">
-                    <DetailCard>
-                      <div className="flex items-center justify-between">
-                        <div className="flex min-w-0 items-center gap-3">
-                          <CompanySymbolBadge
-                            symbol={getCompanySymbol(selectedLead.companyName)}
-                            index={0}
-                            className="rounded"
-                          />
-                          <div className="min-w-0">
-                            <p className="text-[10px] uppercase tracking-widest text-slate-400">
-                              Company
-                            </p>
-                            <p className="truncate text-sm font-semibold text-slate-800 dark:text-slate-200">
-                              {selectedLead.companyName}
-                            </p>
-                          </div>
-                        </div>
-                        <TimezoneBadge timezone={selectedLead.timezone} index={0} />
-                      </div>
-                    </DetailCard>
-
-                    <DetailCard label="Personal Details">
-                      <EditableField label="Full Name">
-                        <TextInput
-                          value={form.fullName}
-                          onChange={(event) =>
-                            updateForm("fullName", event.target.value)
-                          }
-                          className="text-xs font-semibold"
-                        />
-                      </EditableField>
-                      <EditableField label="Role">
-                        <TextInput
-                          value={selectedLead.role || "-"}
-                          readOnly
-                          tabIndex={-1}
-                          className="cursor-default text-xs font-semibold focus:border-gray-300 dark:focus:border-gray-600"
-                        />
-                      </EditableField>
-                      <EditableField label="Phone">
-                        <TextInput
-                          value={selectedLead.phone || "-"}
-                          readOnly
-                          tabIndex={-1}
-                          className="cursor-default text-xs font-semibold focus:border-gray-300 dark:focus:border-gray-600"
-                        />
-                      </EditableField>
-                      <EditableField label="Email">
-                        <TextInput
-                          type="email"
-                          value={form.email}
-                          onChange={(event) =>
-                            updateForm("email", event.target.value)
-                          }
-                          className="text-xs font-semibold"
-                        />
-                      </EditableField>
-                    </DetailCard>
-
-                    <DetailCard label="Lead Details">
-                      <EditableField label="Contact Type">
-                        <Select
-                          value={form.contactType}
-                          onChange={(value) =>
-                            updateForm("contactType", String(value))
-                          }
-                          options={contactTypeOptions}
-                          className="text-xs font-semibold"
-                        />
-                      </EditableField>
-                      <EditableField label="Lead Type">
-                        <Select
-                          value={form.svgLeadType}
-                          onChange={(value) =>
-                            updateForm("svgLeadType", String(value))
-                          }
-                          options={leadTypeOptions}
-                          className="text-xs font-semibold"
-                        />
-                      </EditableField>
-                    </DetailCard>
-
-                    <DetailCard label="Notes">
-                      <EditableField label="Notes" align="stack">
-                        <Textarea
-                          value={form.notes}
-                          onChange={(event) =>
-                            updateForm("notes", event.target.value)
-                          }
-                          className="text-xs font-semibold leading-5"
-                          placeholder="Add notes"
-                        />
-                      </EditableField>
-                      <EditableField label="Doesn't Work Anymore In The Company">
-                        <CheckboxInput
-                          checked={form.doesNotWorkAnymore}
-                          onChange={(event) =>
-                            updateForm(
-                              "doesNotWorkAnymore",
-                              event.target.checked,
-                            )
-                          }
-                          labelClassName="justify-end"
-                        />
-                      </EditableField>
-                      <EditableField label="Call Back Date">
-                        <DatePickerField
-                          value={form.callBackDate}
-                          onChange={(value) => updateForm("callBackDate", value)}
-                          className="text-xs font-semibold"
-                        />
-                      </EditableField>
-                      <EditableField label="Last Called Date">
-                        <TextInput
-                          value={selectedLead.svgLastCallDate || "-"}
-                          readOnly
-                          tabIndex={-1}
-                          className="cursor-default text-xs font-semibold focus:border-gray-300 dark:focus:border-gray-600"
-                        />
-                      </EditableField>
-                      <EditableField label="Last Fixed Date">
-                        <TextInput
-                          value={selectedLead.lastFixedDate || "-"}
-                          readOnly
-                          tabIndex={-1}
-                          className="cursor-default text-xs font-semibold focus:border-gray-300 dark:focus:border-gray-600"
-                        />
-                      </EditableField>
-                    </DetailCard>
-
-                    <DetailCard label="History">
-                      <EditableField label="History Calls" align="stack">
-                        <Textarea
-                          value={form.historyCalls}
-                          readOnly
-                          className="text-xs font-semibold leading-5"
-                        />
-                      </EditableField>
-                      <EditableField label="History Notes" align="stack">
-                        <Textarea
-                          value={form.historyNotes}
-                          readOnly
-                          className="text-xs font-semibold leading-5"
-                        />
-                      </EditableField>
-                    </DetailCard>
-
-                    <DetailCard label="Additional Contacts">
-                      <Detail
-                        label="Contacts"
-                        value={
-                          <HistoryText
-                            value={
-                              form.additionalContacts ||
-                              "No additional contacts."
-                            }
-                          />
-                        }
-                      />
-                    </DetailCard>
-
-                    <DetailCard label="Call Outcome">
-                      <div className="grid grid-cols-1 gap-2.5 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-                        {callOutcomes.map((outcome) => (
-                          <OutcomeButton
-                            key={outcome.label}
-                            label={outcome.label}
-                            icon={outcome.icon}
-                            onClick={() =>
-                              updateForm("selectedOutcome", outcome.label)
-                            }
-                            className={outcome.className}
-                          />
-                        ))}
-                      </div>
-                    </DetailCard>
-
-                    <DetailCard label="All Company Contacts">
-                      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
-                        <DetailCard label={selectedLead.companyName}>
-                          <AssociationDetail
-                            label="Contact Type"
-                            value={
-                              <TypeBadge value={form.contactType} kind="contact" />
-                            }
-                          />
-                          <AssociationDetail
-                            label="Lead Type"
-                            value={<TypeBadge value={form.svgLeadType} kind="lead" />}
-                          />
-                        </DetailCard>
-                      </div>
-                    </DetailCard>
-                  </div>
+                  <CallLogDetailContent
+                    row={selectedLead}
+                    form={form}
+                    onUpdateForm={updateForm}
+                    historyEditable={false}
+                    showAllCompanyContacts
+                    isDrawer={false}
+                    allCompanyContacts={allCompanyContacts}
+                    onOpenCompanyContact={openCompanyContactDrawer}
+                    contactTypeOptions={contactTypeOptions}
+                    leadTypeOptions={leadTypeOptions}
+                  />
                 ) : (
                   <EmptyState message="Select a lead to view call log details." />
                 )}
@@ -717,6 +636,307 @@ export function AgentCallLogs() {
           </div>
         </div>
       </main>
+
+      <Drawer
+        isOpen={Boolean(selectedCompanyContact && selectedCompanyContactForm)}
+        onClose={closeCompanyContactDrawer}
+        direction="right"
+        size="560px"
+        header={
+          selectedCompanyContact ? (
+            <div className="flex w-full items-center gap-2">
+              <button
+                type="button"
+                onClick={() => navigateCompanyContactDrawer(-1)}
+                disabled={selectedCompanyContactIndex <= 0}
+                className="group flex h-7 w-7 cursor-pointer items-center justify-center rounded border border-slate-200 text-slate-600 transition hover:bg-slate-50 disabled:opacity-40 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+              >
+                <ChevronUp className="h-4 w-4 stroke-2 transition group-hover:-translate-y-0.5" />
+              </button>
+              <button
+                type="button"
+                onClick={() => navigateCompanyContactDrawer(1)}
+                disabled={
+                  selectedCompanyContactIndex < 0 ||
+                  selectedCompanyContactIndex >= allCompanyContacts.length - 1
+                }
+                className="group flex h-7 w-7 cursor-pointer items-center justify-center rounded border border-slate-200 text-slate-600 transition hover:bg-slate-50 disabled:opacity-40 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
+              >
+                <ChevronDown className="h-4 w-4 stroke-2 transition group-hover:translate-y-0.5" />
+              </button>
+              <div className="min-w-0">
+                <p className="truncate text-sm font-semibold text-slate-900 dark:text-slate-100">
+                  {selectedCompanyContact.lead}
+                </p>
+                <p className="truncate text-xs text-slate-500 dark:text-slate-400">
+                  {getLeadId(selectedCompanyContact)}
+                </p>
+              </div>
+            </div>
+          ) : null
+        }
+        footer={
+          <EditableDrawerFooter
+            onCancel={closeCompanyContactDrawer}
+            onReset={resetCompanyContactDrawer}
+            onSave={saveCompanyContactDrawer}
+          />
+        }
+      >
+        {selectedCompanyContact && selectedCompanyContactForm ? (
+          <CallLogDetailContent
+            row={selectedCompanyContact}
+            form={selectedCompanyContactForm}
+            onUpdateForm={updateCompanyContactForm}
+            historyEditable
+            showAllCompanyContacts={false}
+            isDrawer
+            allCompanyContacts={[]}
+            onOpenCompanyContact={() => {}}
+            contactTypeOptions={contactTypeOptions}
+            leadTypeOptions={leadTypeOptions}
+          />
+        ) : null}
+      </Drawer>
+    </div>
+  );
+}
+
+function CallLogDetailContent({
+  row,
+  form,
+  onUpdateForm,
+  historyEditable,
+  showAllCompanyContacts,
+  isDrawer,
+  allCompanyContacts,
+  onOpenCompanyContact,
+  contactTypeOptions,
+  leadTypeOptions,
+}: {
+  row: LeadDirectoryRow;
+  form: EditableCallLogState;
+  onUpdateForm: <Key extends keyof EditableCallLogState>(
+    key: Key,
+    value: EditableCallLogState[Key],
+  ) => void;
+  historyEditable: boolean;
+  showAllCompanyContacts: boolean;
+  isDrawer: boolean;
+  allCompanyContacts: LeadDirectoryRow[];
+  onOpenCompanyContact: (row: LeadDirectoryRow) => void;
+  contactTypeOptions: Array<{ label: string; value: string }>;
+  leadTypeOptions: Array<{ label: string; value: string }>;
+}) {
+  return (
+    <div className="space-y-5">
+      <DetailCard>
+        <div className="flex items-center justify-between">
+          <div className="flex min-w-0 items-center gap-3">
+            <CompanySymbolBadge
+              symbol={getCompanySymbol(row.companyName)}
+              index={0}
+              className="rounded"
+            />
+            <div className="min-w-0">
+              <p className="text-[10px] uppercase tracking-widest text-slate-400">
+                Company
+              </p>
+              <p className="truncate text-sm font-semibold text-slate-800 dark:text-slate-200">
+                {row.companyName}
+              </p>
+            </div>
+          </div>
+          <TimezoneBadge timezone={row.timezone} index={0} />
+        </div>
+      </DetailCard>
+
+      <DetailCard label="Personal Details">
+        <EditableField label="Full Name">
+          <TextInput
+            value={form.fullName}
+            onChange={(event) => onUpdateForm("fullName", event.target.value)}
+            className="text-xs font-semibold"
+          />
+        </EditableField>
+        <EditableField label="Role">
+          <TextInput
+            value={row.role || "-"}
+            readOnly
+            tabIndex={-1}
+            className="cursor-default text-xs font-semibold focus:border-gray-300 dark:focus:border-gray-600"
+          />
+        </EditableField>
+        <EditableField label="Phone">
+          <TextInput
+            value={row.phone || "-"}
+            readOnly
+            tabIndex={-1}
+            className="cursor-default text-xs font-semibold focus:border-gray-300 dark:focus:border-gray-600"
+          />
+        </EditableField>
+        <EditableField label="Email">
+          <TextInput
+            type="email"
+            value={form.email}
+            onChange={(event) => onUpdateForm("email", event.target.value)}
+            className="text-xs font-semibold"
+          />
+        </EditableField>
+      </DetailCard>
+
+      <DetailCard label="Lead Details">
+        <EditableField label="Contact Type">
+          <Select
+            value={form.contactType}
+            onChange={(value) => onUpdateForm("contactType", String(value))}
+            options={contactTypeOptions}
+            className="text-xs font-semibold"
+          />
+        </EditableField>
+        <EditableField label="Lead Type">
+          <Select
+            value={form.svgLeadType}
+            onChange={(value) => onUpdateForm("svgLeadType", String(value))}
+            options={leadTypeOptions}
+            className="text-xs font-semibold"
+          />
+        </EditableField>
+      </DetailCard>
+
+      <DetailCard label="Notes">
+        <EditableField label="Notes" align="stack">
+          <Textarea
+            value={form.notes}
+            onChange={(event) => onUpdateForm("notes", event.target.value)}
+            className="text-xs font-semibold leading-5"
+            placeholder="Add notes"
+          />
+        </EditableField>
+        <EditableField label="Doesn't Work Anymore In The Company">
+          <CheckboxInput
+            checked={form.doesNotWorkAnymore}
+            onChange={(event) =>
+              onUpdateForm("doesNotWorkAnymore", event.target.checked)
+            }
+            labelClassName="justify-end"
+          />
+        </EditableField>
+        <EditableField label="Call Back Date">
+          <DatePickerField
+            value={form.callBackDate}
+            onChange={(value) => onUpdateForm("callBackDate", value)}
+            className="text-xs font-semibold"
+          />
+        </EditableField>
+        <EditableField label="Last Called Date">
+          <TextInput
+            value={row.svgLastCallDate || "-"}
+            readOnly
+            tabIndex={-1}
+            className="cursor-default text-xs font-semibold focus:border-gray-300 dark:focus:border-gray-600"
+          />
+        </EditableField>
+        <EditableField label="Last Fixed Date">
+          <TextInput
+            value={row.lastFixedDate || "-"}
+            readOnly
+            tabIndex={-1}
+            className="cursor-default text-xs font-semibold focus:border-gray-300 dark:focus:border-gray-600"
+          />
+        </EditableField>
+      </DetailCard>
+
+      <DetailCard label="History">
+        <EditableField label="History Calls" align="stack">
+          <Textarea
+            value={form.historyCalls}
+            readOnly={!historyEditable}
+            onChange={
+              historyEditable
+                ? (event) => onUpdateForm("historyCalls", event.target.value)
+                : undefined
+            }
+            className="text-xs font-semibold leading-5"
+          />
+        </EditableField>
+        <EditableField label="History Notes" align="stack">
+          <Textarea
+            value={form.historyNotes}
+            readOnly={!historyEditable}
+            onChange={
+              historyEditable
+                ? (event) => onUpdateForm("historyNotes", event.target.value)
+                : undefined
+            }
+            className="text-xs font-semibold leading-5"
+          />
+        </EditableField>
+      </DetailCard>
+
+      <DetailCard label="Additional Contacts">
+        <Detail
+          label="Contacts"
+          value={
+            <HistoryText
+              value={form.additionalContacts || "No additional contacts."}
+            />
+          }
+        />
+      </DetailCard>
+
+      <DetailCard label="Call Outcome">
+        <div
+          className={
+            isDrawer
+              ? "grid grid-cols-1 gap-2.5 md:grid-cols-2"
+              : "grid grid-cols-1 gap-2.5 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4"
+          }
+        >
+          {callOutcomes.map((outcome) => (
+            <OutcomeButton
+              key={outcome.label}
+              label={outcome.label}
+              icon={outcome.icon}
+              onClick={() => onUpdateForm("selectedOutcome", outcome.label)}
+              className={outcome.className}
+            />
+          ))}
+        </div>
+      </DetailCard>
+
+      {showAllCompanyContacts ? (
+        <DetailCard label="All Company Contacts">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {allCompanyContacts.map((contact) => (
+              <button
+                key={getCompanyContactKey(contact)}
+                type="button"
+                onClick={() => onOpenCompanyContact(contact)}
+                className="w-full text-left cursor-pointer"
+              >
+                <DetailCard label={contact.companyName}>
+                  <AssociationDetail
+                    label="Contact Type"
+                    value={
+                      <TypeBadge value={contact.contactType} kind="contact" />
+                    }
+                  />
+                  <AssociationDetail
+                    label="Lead Type"
+                    value={
+                      <TypeBadge
+                        value={contact.svgLeadType || contact.lead}
+                        kind="lead"
+                      />
+                    }
+                  />
+                </DetailCard>
+              </button>
+            ))}
+          </div>
+        </DetailCard>
+      ) : null}
     </div>
   );
 }
