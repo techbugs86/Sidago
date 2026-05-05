@@ -42,6 +42,11 @@ export const agentNavigation: NavigationItem[] = [
     icon: Phone,
   },
   {
+    label: "Call Logs",
+    href: "/call-logs",
+    icon: History,
+  },
+  {
     label: "Lead Manual Update",
     href: "/lead-manual-update",
     icon: RefreshCw,
