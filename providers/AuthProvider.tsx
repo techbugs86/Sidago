@@ -29,7 +29,7 @@ const AuthContext = createContext<AuthContextType | null>(null);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { data, isLoading, isError } = useMe();
   const user = data?.user;
-  const navigations = user ? getNavigationsForRole(user.role) : [];
+  const navigations = user ? getNavigationsForRole(user) : [];
 
   const hasRole = (role: UserRole | UserRole[]) => {
     if (!user) return false;
