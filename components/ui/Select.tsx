@@ -114,9 +114,9 @@ function SelectOptionsPanel({
           No options found
         </div>
       ) : (
-        filteredOptions.map((option) => (
+        filteredOptions.map((option, index) => (
           <ListboxOption
-            key={option.value}
+            key={`${String(option.value)}-${index}`}
             value={option.value}
             className={({ focus }) =>
               clsx(
