@@ -132,82 +132,6 @@ export const agentNavigation: NavigationItem[] = [
   ...cloneNavigationItems(AGENT_CHILDREN),
 ];
 
-export const backofficeNavigation: NavigationItem[] = [
-  {
-    label: "Dashboard",
-    href: "/dashboard",
-    icon: LayoutDashboard,
-  },
-  {
-    label: "Currently Hot Leads",
-    icon: Flame,
-    children: [
-      {
-        label: "SVG",
-        href: "/currently-hot-leads-svg",
-        icon: Flame,
-      },
-      {
-        label: "95RM",
-        href: "/currently-hot-leads-95rm",
-        icon: Flame,
-      },
-      {
-        label: "Benton",
-        href: "/currently-hot-leads-benton",
-        icon: Flame,
-      },
-    ],
-  },
-  {
-    label: "Recent Interest",
-    icon: Clock,
-    children: [
-      {
-        label: "SVG",
-        href: "/recent-interest-svg",
-        icon: Clock,
-      },
-      {
-        label: "95RM",
-        href: "/recent-interest-95rm",
-        icon: Clock,
-      },
-      {
-        label: "Benton",
-        href: "/recent-interest-benton",
-        icon: Clock,
-      },
-    ],
-  },
-  {
-    label: "Ever Been Hot",
-    icon: RotateCcw,
-    children: [
-      {
-        label: "SVG",
-        href: "/ever-been-hot-svg",
-        icon: RotateCcw,
-      },
-      {
-        label: "95RM",
-        href: "/ever-been-hot-95rm",
-        icon: RotateCcw,
-      },
-      {
-        label: "Benton",
-        href: "/ever-been-hot-benton",
-        icon: RotateCcw,
-      },
-    ],
-  },
-  {
-    label: "Closed Contact",
-    href: "/closed-contacts",
-    icon: Lock,
-  },
-];
-
 export const adminOnlyNavigation: NavigationItem[] = [
   {
     label: "Dashboard",
@@ -422,6 +346,10 @@ export const adminOnlyNavigation: NavigationItem[] = [
     ],
   },
 ];
+
+export const backofficeNavigation: NavigationItem[] = cloneNavigationItems(
+  adminOnlyNavigation.filter((item) => item.label !== "Agents"),
+);
 
 const navigationByRole: Record<UserRole, NavigationItem[]> = {
   agent: agentNavigation,
