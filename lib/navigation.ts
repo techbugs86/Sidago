@@ -276,7 +276,7 @@ export const adminOnlyNavigation: NavigationItem[] = [
     icon: BarChart2,
     children: [
       {
-        label: "Currently Hot Leads",
+        label: "Currently Hot",
         icon: Flame,
         children: [
           {
@@ -335,6 +335,27 @@ export const adminOnlyNavigation: NavigationItem[] = [
             label: "Benton",
             href: "/ever-been-hot-benton",
             icon: RotateCcw,
+          },
+        ],
+      },
+      {
+        label: "Unassigned Hot",
+        icon: Flame,
+        children: [
+          {
+            label: "SVG",
+            href: "/unassigned-hot-leads-svg",
+            icon: Flame,
+          },
+          {
+            label: "95RM",
+            href: "/unassigned-hot-leads-95rm",
+            icon: Flame,
+          },
+          {
+            label: "Benton",
+            href: "/unassigned-hot-leads-benton",
+            icon: Flame,
           },
         ],
       },
