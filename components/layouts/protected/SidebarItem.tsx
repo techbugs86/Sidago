@@ -81,9 +81,19 @@ export const SidebarItem = ({
     () => itemMatchesPath(item, currentPath, currentSearch),
     [currentPath, currentSearch, item],
   );
-  const [isManuallyOpen, setIsManuallyOpen] = useState(false);
-  const isOpen = isManuallyOpen || isBranchActive;
   const resolvedKey = itemKey || item.href || item.label;
+  const routeSignature = `${resolvedKey}::${currentPath}?${currentSearch}`;
+  const [manualOpenState, setManualOpenState] = useState<{
+    routeSignature: string;
+    value: boolean | null;
+  }>({
+    routeSignature,
+    value: null,
+  });
+  const isOpen =
+    manualOpenState.routeSignature === routeSignature
+      ? (manualOpenState.value ?? isBranchActive)
+      : isBranchActive;
   const showIcon = depth === 0;
   const labelClassName =
     depth === 0
@@ -125,7 +135,7 @@ export const SidebarItem = ({
               isActive ? "font-bold" : "font-semibold",
               labelClassName,
               allowLabelWrap
-                ? "whitespace-normal break-words leading-snug"
+                ? "whitespace-normal wrap-break-words leading-snug"
                 : "truncate",
             )}
           >
@@ -152,7 +162,13 @@ export const SidebarItem = ({
           type="button"
           onClick={() => {
             if (!isCollapsed) {
-              setIsManuallyOpen((current) => !current);
+              setManualOpenState((current) => ({
+                routeSignature,
+                value:
+                  current.routeSignature === routeSignature
+                    ? !(current.value ?? isBranchActive)
+                    : !isBranchActive,
+              }));
             }
           }}
           title={item.label}

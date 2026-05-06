@@ -339,6 +339,27 @@ export const adminOnlyNavigation: NavigationItem[] = [
         ],
       },
       {
+        label: "Unassigned Hot Leads",
+        icon: Flame,
+        children: [
+          {
+            label: "SVG",
+            href: "/unassigned-hot-leads-svg",
+            icon: Flame,
+          },
+          {
+            label: "95RM",
+            href: "/unassigned-hot-leads-95rm",
+            icon: Flame,
+          },
+          {
+            label: "Benton",
+            href: "/unassigned-hot-leads-benton",
+            icon: Flame,
+          },
+        ],
+      },
+      {
         label: "Closed Contact",
         href: "/closed-contacts",
         icon: Lock,

@@ -38,7 +38,11 @@ import {
 import { useEffect, useMemo, useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
 import { OutcomeButton } from "@/features/agent-calls/_components/OutcomeButton";
-import { showSuccessToast } from "@/lib/toast";
+import {
+  useUpdateLead,
+  type LeadPatchBody,
+} from "@/features/backoffice-shared/use-update-lead";
+import { showErrorToast, showSuccessToast } from "@/lib/toast";
 import Revisions from "@/features/backoffice-shared/Revisions";
 
 type ClosedContactDrawerProps = {
@@ -161,13 +165,25 @@ export function ClosedContactDrawer({
 
   const row = selectedIndex === null ? null : (data[selectedIndex] ?? null);
   const rowKey = row?.email ?? "";
+  const initialForm = useMemo(() => (row ? getEditableState(row) : null), [row]);
   const isEditMode = rowKey !== "" && editModeKey === rowKey;
   const form =
     formState?.key === rowKey
       ? formState.value
-      : row
-        ? getEditableState(row)
-        : null;
+      : initialForm;
+  const updateLead = useUpdateLead();
+  const isDirty = useMemo(() => {
+    if (!form || !initialForm) return false;
+
+    return (
+      form.fullName !== initialForm.fullName ||
+      form.phone !== initialForm.phone ||
+      form.email !== initialForm.email ||
+      form.contactType !== initialForm.contactType ||
+      form.bentonLeadType !== initialForm.bentonLeadType ||
+      form.doesNotWorkAnymore !== initialForm.doesNotWorkAnymore
+    );
+  }, [form, initialForm]);
 
   const detailItems = useMemo(() => {
     if (!row) return [];
@@ -230,9 +246,52 @@ export function ClosedContactDrawer({
     setEditModeKey(rowKey);
   };
 
-  const handleSave = () => {
-    showSuccessToast("Closed contact changes saved successfully.");
-    setEditModeKey(null);
+  const handleSave = async () => {
+    if (!row || !form || !initialForm) return;
+
+    if (!row.leadId) {
+      showErrorToast(new Error("Cannot save: this row has no leadId (mock data?)"));
+      return;
+    }
+
+    const body: LeadPatchBody = {};
+    const leadDiff: NonNullable<LeadPatchBody["lead"]> = {};
+
+    if (form.fullName !== initialForm.fullName) {
+      leadDiff.full_name = form.fullName;
+    }
+    if (form.phone !== initialForm.phone) {
+      leadDiff.phone = form.phone;
+    }
+    if (form.email !== initialForm.email) leadDiff.email = form.email;
+    if (form.contactType !== initialForm.contactType) {
+      leadDiff.contact_type = form.contactType;
+    }
+    if (form.doesNotWorkAnymore !== initialForm.doesNotWorkAnymore) {
+      leadDiff.not_work_anymore = form.doesNotWorkAnymore;
+    }
+
+    if (Object.keys(leadDiff).length > 0) body.lead = leadDiff;
+
+    if (form.bentonLeadType !== initialForm.bentonLeadType) {
+      body.brandStates = {
+        benton: { lead_type: form.bentonLeadType },
+      };
+    }
+
+    if (!body.lead && !body.brandStates) {
+      showErrorToast(new Error("No changes to save"));
+      return;
+    }
+
+    try {
+      await updateLead.mutateAsync({ leadId: row.leadId, body });
+      showSuccessToast("Lead updated");
+      setFormState(null);
+      setEditModeKey(null);
+    } catch (err) {
+      showErrorToast(err);
+    }
   };
 
   const handleCopyUrl = async () => {
@@ -348,12 +407,12 @@ export function ClosedContactDrawer({
       footer={
         isEditMode ? (
           <EditableDrawerFooter
-            onCancel={() => {
-              setEditModeKey(null);
-              onClose();
-            }}
+            onCancel={() => setEditModeKey(null)}
             onReset={handleReset}
             onSave={handleSave}
+            saveDisabled={!isDirty || updateLead.isPending || !row?.leadId}
+            resetDisabled={!isDirty || updateLead.isPending}
+            saveLabel={updateLead.isPending ? "Saving..." : "Save"}
           />
         ) : (
           <Revisions />

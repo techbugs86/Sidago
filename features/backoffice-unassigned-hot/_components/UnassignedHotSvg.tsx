@@ -1,13 +1,14 @@
 "use client";
 
 import React from "react";
-import { unassignedHotLeadsData } from "../_lib/data";
 import { UnassignedHotTable } from "./UnassignedHotTable";
+import { useUnassignedHot } from "../_lib/use-unassigned-hot";
 
 export function UnassignedHotSvg() {
+   const { data } = useUnassignedHot("svg");
   return (
     <UnassignedHotTable
-      data={unassignedHotLeadsData}
+      data={data ?? []}
       title="Unassigned Hot Leads - SVG"
       variant="svg"
     />

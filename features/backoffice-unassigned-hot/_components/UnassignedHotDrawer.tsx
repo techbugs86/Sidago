@@ -24,7 +24,11 @@ import { AGENT_VALUES } from "@/types/agent.types";
 import { COMPANY_VALUES } from "@/types/company.types";
 import { CONTACT_TYPE_VALUES } from "@/types/contact-type.types";
 import { LEAD_TYPE_VALUES } from "@/types/lead-type.types";
-import { showSuccessToast } from "@/lib/toast";
+import {
+  useUpdateLead,
+  type LeadPatchBody,
+} from "@/features/backoffice-shared/use-update-lead";
+import { showErrorToast, showSuccessToast } from "@/lib/toast";
 import Revisions from "@/features/backoffice-shared/Revisions";
 
 type UnassignedHotLeadsDrawerProps = {
@@ -154,6 +158,11 @@ export function UnassignedHotDrawer({
     [row],
   );
   const form = formState?.key === rowKey ? formState.value : initialForm;
+  const updateLead = useUpdateLead();
+  const isDirty = useMemo(() => {
+    if (!form || !initialForm) return false;
+    return JSON.stringify(form) !== JSON.stringify(initialForm);
+  }, [form, initialForm]);
 
   const companyOptions = useMemo(
     () =>
@@ -248,9 +257,79 @@ export function UnassignedHotDrawer({
     setEditModeKey(rowKey);
   };
 
-  const handleSave = () => {
-    showSuccessToast("Lead changes saved successfully.");
-    setEditModeKey(null);
+  const handleSave = async () => {
+    if (!row || !form || !initialForm) return;
+
+    if (!row.leadId) {
+      showErrorToast(
+        new Error("Cannot save: this row has no leadId (mock data?)"),
+      );
+      return;
+    }
+
+    const body: LeadPatchBody = {};
+    const leadDiff: NonNullable<LeadPatchBody["lead"]> = {};
+
+    if (form.fullName !== initialForm.fullName) leadDiff.full_name = form.fullName;
+    if (form.phone !== initialForm.phone) leadDiff.phone = form.phone;
+    if (form.email !== initialForm.email) leadDiff.email = form.email;
+    if (form.role !== initialForm.role) leadDiff.role = form.role;
+    if (form.contactType !== initialForm.contactType) {
+      leadDiff.contact_type = form.contactType;
+    }
+    if (form.notWorked !== initialForm.notWorked) {
+      leadDiff.not_work_anymore = form.notWorked;
+    }
+    if (form.companyName !== initialForm.companyName) {
+      leadDiff.company_name = form.companyName;
+    }
+
+    if (Object.keys(leadDiff).length > 0) body.lead = leadDiff;
+
+    const brandStates: NonNullable<LeadPatchBody["brandStates"]> = {};
+
+    const svgDiff: NonNullable<NonNullable<LeadPatchBody["brandStates"]>["svg"]> =
+      {};
+    if (form.svgLeadType !== initialForm.svgLeadType) {
+      svgDiff.lead_type = form.svgLeadType;
+    }
+    if (form.svgToBeCalledBy !== initialForm.svgToBeCalledBy) {
+      svgDiff.to_be_called_by = form.svgToBeCalledBy || null;
+    }
+    if (form.svgToBeCalledOn !== initialForm.svgToBeCalledOn) {
+      svgDiff.last_called_date = form.svgToBeCalledOn || null;
+    }
+    if (Object.keys(svgDiff).length > 0) brandStates.svg = svgDiff;
+
+    const bentonDiff: NonNullable<
+      NonNullable<LeadPatchBody["brandStates"]>["benton"]
+    > = {};
+    if (form.bentonLeadType !== initialForm.bentonLeadType) {
+      bentonDiff.lead_type = form.bentonLeadType;
+    }
+    if (form.bentonToBeCalledBy !== initialForm.bentonToBeCalledBy) {
+      bentonDiff.to_be_called_by = form.bentonToBeCalledBy || null;
+    }
+    if (form.bentonToBeCalledOn !== initialForm.bentonToBeCalledOn) {
+      bentonDiff.last_called_date = form.bentonToBeCalledOn || null;
+    }
+    if (Object.keys(bentonDiff).length > 0) brandStates.benton = bentonDiff;
+
+    if (Object.keys(brandStates).length > 0) body.brandStates = brandStates;
+
+    if (!body.lead && !body.brandStates) {
+      showErrorToast(new Error("No changes to save"));
+      return;
+    }
+
+    try {
+      await updateLead.mutateAsync({ leadId: row.leadId, body });
+      showSuccessToast("Lead updated");
+      setFormState(null);
+      setEditModeKey(null);
+    } catch (err) {
+      showErrorToast(err);
+    }
   };
 
   const handleCopyUrl = async () => {
@@ -370,6 +449,9 @@ export function UnassignedHotDrawer({
             }}
             onReset={handleReset}
             onSave={handleSave}
+            saveDisabled={!isDirty || updateLead.isPending || !row?.leadId}
+            resetDisabled={!isDirty || updateLead.isPending}
+            saveLabel={updateLead.isPending ? "Saving..." : "Save"}
           />
         ) : (
           <Revisions />

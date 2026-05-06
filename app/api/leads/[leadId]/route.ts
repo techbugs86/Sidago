@@ -275,7 +275,32 @@ export async function PATCH(
               eq(leadBrandState.brandId, up.brandId),
             ),
           );
-        brandUpdates[up.brandCode] = (result as { count?: number }).count ?? 0;
+        const updatedCount = (result as { count?: number }).count ?? 0;
+
+        if (updatedCount > 0) {
+          brandUpdates[up.brandCode] = updatedCount;
+          continue;
+        }
+
+        await tx.insert(leadBrandState).values({
+          leadId,
+          brandId: up.brandId,
+          leadType:
+            typeof up.setClause.leadType === "string"
+              ? up.setClause.leadType
+              : null,
+          toBeCalledByUserId:
+            typeof up.setClause.toBeCalledByUserId === "string"
+              ? up.setClause.toBeCalledByUserId
+              : null,
+          lastCalledDate:
+            typeof up.setClause.lastCalledDate === "string"
+              ? up.setClause.lastCalledDate
+              : null,
+          updatedAt: new Date().toISOString(),
+        });
+
+        brandUpdates[up.brandCode] = 1;
       }
     });
 
