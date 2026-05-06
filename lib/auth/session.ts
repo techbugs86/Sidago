@@ -53,9 +53,7 @@ export async function revokeSession(sessionId: string): Promise<void> {
     .where(eq(userSessions.id, sessionId));
 }
 
-export async function revokeAllSessionsForUser(
-  userId: string,
-): Promise<void> {
+export async function revokeAllSessionsForUser(userId: string): Promise<void> {
   await db
     .update(userSessions)
     .set({ revokedAt: sql`now()` })

@@ -255,9 +255,7 @@ export async function PATCH(
       await tx.execute(
         sql`SELECT set_config('app.current_user_id', ${auth.userId}, true)`,
       );
-      await tx.execute(
-        sql`SELECT set_config('app.actor_type', 'user', true)`,
-      );
+      await tx.execute(sql`SELECT set_config('app.actor_type', 'user', true)`);
 
       if (leadSetClause) {
         const result = await tx

@@ -3,9 +3,9 @@
 import {
   CheckboxInput,
   CompanySymbolBadge,
-  DateInput,
+  DatePickerField,
   Drawer,
-  EmailLink,
+  EditableDrawerFooter,
   Select,
   Textarea,
   TextInput,
@@ -14,8 +14,10 @@ import {
 import type { Column } from "@/components/ui/Table";
 import type { ClosedContactRow } from "../_lib/data";
 import {
+  type ClosedContactsTabKey,
   contactTypeOptions,
   getCompanySymbol,
+  getLeadId,
   leadTypeOptions,
 } from "../_lib/data";
 import {
@@ -33,19 +35,16 @@ import {
   ThumbsDown,
   ThumbsUp,
 } from "lucide-react";
-import { isValidElement, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
-import Comments from "@/features/backoffice-shared/Comments";
 import { OutcomeButton } from "@/features/agent-calls/_components/OutcomeButton";
-import {
-  useUpdateLead,
-  type LeadPatchBody,
-} from "@/features/backoffice-shared/use-update-lead";
-import { showErrorToast, showSuccessToast } from "@/lib/toast";
+import { showSuccessToast } from "@/lib/toast";
+import Revisions from "@/features/backoffice-shared/Revisions";
 
 type ClosedContactDrawerProps = {
   data: ClosedContactRow[];
   columns?: Column<ClosedContactRow>[];
+  tabKey: ClosedContactsTabKey;
   selectedIndex: number | null;
   onSelectedIndexChange: (index: number) => void;
   onClose: () => void;
@@ -130,7 +129,7 @@ function getEditableState(row: ClosedContactRow): EditableClosedContactState {
     notes: "",
     additionalContacts: "",
     doesNotWorkAnymore: false,
-    callBackDate: row.callBackDate,
+    callBackDate: row.callBackDate ?? "",
     selectedOutcome: "",
   };
 }
@@ -146,6 +145,7 @@ function escapeHtml(value: string) {
 export function ClosedContactDrawer({
   data,
   columns,
+  tabKey,
   selectedIndex,
   onSelectedIndexChange,
   onClose,
@@ -153,6 +153,7 @@ export function ClosedContactDrawer({
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [copied, setCopied] = useState(false);
+  const [editModeKey, setEditModeKey] = useState<string | null>(null);
   const [formState, setFormState] = useState<{
     key: string;
     value: EditableClosedContactState;
@@ -160,26 +161,13 @@ export function ClosedContactDrawer({
 
   const row = selectedIndex === null ? null : (data[selectedIndex] ?? null);
   const rowKey = row?.email ?? "";
-  const initialForm = useMemo(
-    () => (row ? getEditableState(row) : null),
-    [row],
-  );
-  const form = formState?.key === rowKey ? formState.value : initialForm;
-
-  const updateLead = useUpdateLead();
-  const isDirty = useMemo(() => {
-    if (!form || !initialForm) return false;
-    // Only persistable fields drive the dirty flag — `notes`, `callBackDate`,
-    // and `selectedOutcome` have no save target so we ignore them here.
-    return (
-      form.fullName !== initialForm.fullName ||
-      form.phone !== initialForm.phone ||
-      form.email !== initialForm.email ||
-      form.contactType !== initialForm.contactType ||
-      form.bentonLeadType !== initialForm.bentonLeadType ||
-      form.doesNotWorkAnymore !== initialForm.doesNotWorkAnymore
-    );
-  }, [form, initialForm]);
+  const isEditMode = rowKey !== "" && editModeKey === rowKey;
+  const form =
+    formState?.key === rowKey
+      ? formState.value
+      : row
+        ? getEditableState(row)
+        : null;
 
   const detailItems = useMemo(() => {
     if (!row) return [];
@@ -205,9 +193,10 @@ export function ClosedContactDrawer({
     if (!row || typeof window === "undefined") return "";
 
     const params = new URLSearchParams(searchParams.toString());
-    params.set("lead", row.email);
+    params.set("tab", tabKey);
+    params.set("lead", getLeadId(row));
     return `${window.location.origin}${pathname}?${params.toString()}`;
-  }, [pathname, row, searchParams]);
+  }, [pathname, row, searchParams, tabKey]);
 
   useEffect(() => {
     if (!copied) return;
@@ -232,51 +221,24 @@ export function ClosedContactDrawer({
     }));
   };
 
+  const handleReset = () => {
+    setFormState(null);
+  };
+
+  const handleEditStart = () => {
+    if (!rowKey) return;
+    setEditModeKey(rowKey);
+  };
+
+  const handleSave = () => {
+    showSuccessToast("Closed contact changes saved successfully.");
+    setEditModeKey(null);
+  };
+
   const handleCopyUrl = async () => {
     if (!drawerUrl) return;
     await navigator.clipboard.writeText(drawerUrl);
     setCopied(true);
-  };
-
-  const handleSave = async () => {
-    if (!row || !form || !initialForm) return;
-
-    if (!row.leadId) {
-      showErrorToast(
-        new Error("Cannot save: this row has no leadId (mock data?)"),
-      );
-      return;
-    }
-
-    const body: LeadPatchBody = {};
-    const leadDiff: NonNullable<LeadPatchBody["lead"]> = {};
-
-    if (form.email !== initialForm.email) leadDiff.email = form.email;
-    if (form.contactType !== initialForm.contactType)
-      leadDiff.contact_type = form.contactType;
-    if (form.doesNotWorkAnymore !== initialForm.doesNotWorkAnymore)
-      leadDiff.not_work_anymore = form.doesNotWorkAnymore;
-
-    if (Object.keys(leadDiff).length > 0) body.lead = leadDiff;
-
-    if (form.bentonLeadType !== initialForm.bentonLeadType) {
-      body.brandStates = {
-        benton: { lead_type: form.bentonLeadType },
-      };
-    }
-
-    if (!body.lead && !body.brandStates) {
-      showErrorToast(new Error("No changes to save"));
-      return;
-    }
-
-    try {
-      await updateLead.mutateAsync({ leadId: row.leadId, body });
-      showSuccessToast("Lead updated");
-      setFormState(null);
-    } catch (err) {
-      showErrorToast(err);
-    }
   };
 
   const handlePrint = () => {
@@ -352,9 +314,6 @@ export function ClosedContactDrawer({
               <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
                 {row.lead}
               </p>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
-                Row {currentIndex + 1} of {data.length}
-              </p>
             </div>
           </div>
 
@@ -387,27 +346,21 @@ export function ClosedContactDrawer({
         </div>
       }
       footer={
-        <div className="flex items-center justify-end gap-2">
-          <button
-            type="button"
-            onClick={() => setFormState(null)}
-            disabled={!isDirty || updateLead.isPending}
-            className="rounded border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
-          >
-            Discard
-          </button>
-          <button
-            type="button"
-            onClick={handleSave}
-            disabled={!isDirty || updateLead.isPending || !row?.leadId}
-            className="rounded bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            {updateLead.isPending ? "Saving…" : "Save"}
-          </button>
-        </div>
+        isEditMode ? (
+          <EditableDrawerFooter
+            onCancel={() => {
+              setEditModeKey(null);
+              onClose();
+            }}
+            onReset={handleReset}
+            onSave={handleSave}
+          />
+        ) : (
+          <Revisions />
+        )
       }
     >
-      <div className="space-y-5">
+      <div className="space-y-5" onFocus={handleEditStart}>
         {/* Company identity */}
         <DetailCard>
           <div className="flex items-center justify-between">
@@ -432,8 +385,20 @@ export function ClosedContactDrawer({
 
         {/* Contact info */}
         <DetailCard label="Personal Details">
-          <Detail label="Full Name" value={form.fullName || "-"} />
-          <Detail label="Phone" value={form.phone || "-"} />
+          <EditableField label="Full Name">
+            <TextInput
+              value={form.fullName}
+              onChange={(event) => updateForm("fullName", event.target.value)}
+              className="text-xs font-semibold"
+            />
+          </EditableField>
+          <EditableField label="Phone">
+            <TextInput
+              value={form.phone}
+              onChange={(event) => updateForm("phone", event.target.value)}
+              className="text-xs font-semibold"
+            />
+          </EditableField>
           <EditableField label="Email">
             <TextInput
               type="email"
@@ -470,7 +435,7 @@ export function ClosedContactDrawer({
         </DetailCard>
 
         <DetailCard label="Notes">
-          <EditableField label="Notes" align="stack" readOnly>
+          <EditableField label="Notes" align="stack">
             <Textarea
               value={form.notes}
               onChange={(event) => updateForm("notes", event.target.value)}
@@ -487,12 +452,10 @@ export function ClosedContactDrawer({
               labelClassName="justify-end"
             />
           </EditableField>
-          <EditableField label="Call Back Date" readOnly>
-            <DateInput
-              value={form.callBackDate}
-              onChange={(event) =>
-                updateForm("callBackDate", event.target.value)
-              }
+          <EditableField label="Call Back Date">
+            <DatePickerField
+              value={form.callBackDate ?? ""}
+              onChange={(value) => updateForm("callBackDate", value)}
               className="text-xs font-semibold"
             />
           </EditableField>
@@ -511,7 +474,16 @@ export function ClosedContactDrawer({
         </DetailCard>
 
         <DetailCard label="Additional Contacts">
-          <Detail label="Contacts" value="-" />
+          <EditableField label="Contacts" align="stack">
+            <Textarea
+              value={form.additionalContacts}
+              onChange={(event) =>
+                updateForm("additionalContacts", event.target.value)
+              }
+              className="text-xs font-semibold leading-5"
+              placeholder="Add contacts"
+            />
+          </EditableField>
         </DetailCard>
 
         <DetailCard label="Call Outcome">
@@ -570,16 +542,11 @@ function EditableField({
   label,
   children,
   align = "row",
-  readOnly = false,
 }: {
   label: string;
   children: React.ReactNode;
   align?: "row" | "stack";
-  readOnly?: boolean;
 }) {
-  const [isEditing, setIsEditing] = useState(false);
-  const preview = getEditablePreview(label, children);
-
   return (
     <div
       className={
@@ -592,86 +559,16 @@ function EditableField({
         {label}
       </p>
       <div className={align === "stack" ? "w-full" : "w-64 max-w-[65%]"}>
-        {readOnly ? (
-          <div
-            aria-readonly
-            className={`w-full rounded border border-slate-200 bg-slate-100 text-xs font-medium text-slate-500 dark:border-slate-700 dark:bg-slate-800/60 dark:text-slate-400 ${
-              align === "stack"
-                ? "min-h-[98px] px-3 py-2 text-left whitespace-pre-line"
-                : "min-h-[30px] px-3 py-1.5 text-left truncate"
-            }`}
-          >
-            {preview}
-          </div>
-        ) : isEditing ? (
-          children
-        ) : (
-          <div
-            role="button"
-            tabIndex={0}
-            onClick={() => setIsEditing(true)}
-            onKeyDown={(event) => {
-              if (event.key === "Enter" || event.key === " ") {
-                event.preventDefault();
-                setIsEditing(true);
-              }
-            }}
-            className={`w-full cursor-text rounded border border-gray-300 bg-white text-xs font-semibold text-slate-600 transition focus:border-indigo-500 focus:outline-none dark:border-gray-600 dark:bg-gray-800 dark:text-slate-200 ${
-              align === "stack"
-                ? "min-h-[98px] px-3 py-2 text-left whitespace-pre-line"
-                : "min-h-[30px] px-3 py-1.5 text-left truncate"
-            }`}
-          >
-            {preview}
-          </div>
-        )}
+        {children}
       </div>
     </div>
   );
 }
 
-function getEditablePreview(
-  label: string,
-  children: React.ReactNode,
-): React.ReactNode {
-  if (!isValidElement(children)) return <EmptyPreview label={label} />;
-
-  const props = children.props as {
-    value?: unknown;
-    checked?: boolean;
-    options?: Array<{ label: string; value: string | number }>;
-  };
-
-  if (typeof props.checked === "boolean") {
-    return props.checked ? "Yes" : "No";
-  }
-
-  const value = props.value == null ? "" : String(props.value);
-  if (!value) return <EmptyPreview label={label} />;
-
-  if (label.toLowerCase() === "email") {
-    return <EmailLink value={value} />;
-  }
-
-  const option = props.options?.find((item) => String(item.value) === value);
-  return option?.label ?? value;
-}
-
-function EmptyPreview({
-  label,
-}: {
-  label: string;
-}) {
-  return (
-    <span
-      aria-label={`Empty ${label}`}
-      className="block"
-    />
-  );
-}
-
 function HistoryText({ value }: { value: string }) {
   return (
-    <span className="block whitespace-pre-line text-left leading-5">{value}</span>
+    <span className="block whitespace-pre-line text-left leading-5">
+      {value}
+    </span>
   );
 }

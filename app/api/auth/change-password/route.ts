@@ -91,7 +91,10 @@ export async function POST(req: Request) {
       );
     }
 
-    const oldPasswordValid = await verifyPassword(oldPassword, user.passwordHash);
+    const oldPasswordValid = await verifyPassword(
+      oldPassword,
+      user.passwordHash,
+    );
     if (!oldPasswordValid) {
       return NextResponse.json(
         { success: false, message: "Current password is incorrect" },
@@ -108,9 +111,7 @@ export async function POST(req: Request) {
       await tx.execute(
         sql`SELECT set_config('app.current_user_id', ${user.id}, true)`,
       );
-      await tx.execute(
-        sql`SELECT set_config('app.actor_type', 'user', true)`,
-      );
+      await tx.execute(sql`SELECT set_config('app.actor_type', 'user', true)`);
       await tx
         .update(users)
         .set({ passwordHash: newHash })

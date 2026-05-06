@@ -19,7 +19,10 @@ export function Textarea({
   return (
     <div className={clsx("flex w-full flex-col gap-1", wrapperClassName)}>
       {label && (
-        <label htmlFor={textareaId} className={clsx("text-sm font-medium", labelClassName)}>
+        <label
+          htmlFor={textareaId}
+          className={clsx("text-sm font-medium", labelClassName)}
+        >
           {label}
         </label>
       )}

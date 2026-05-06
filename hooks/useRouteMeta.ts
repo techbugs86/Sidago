@@ -28,7 +28,7 @@ export function useRouteMeta() {
     ? {
         label: match.label,
         icon: match.icon,
-        href: match.href,
+        href: match.href ?? pathname,
       }
     : {
         label: "Page",

@@ -16,12 +16,7 @@
 import { NextResponse } from "next/server";
 import { and, eq, sql } from "drizzle-orm";
 import { db } from "@/lib/db";
-import {
-  brands,
-  roles,
-  userRoleAssignments,
-  users,
-} from "@/lib/db/schema";
+import { brands, roles, userRoleAssignments, users } from "@/lib/db/schema";
 
 const VALID_BRANDS = ["svg", "95rm", "benton"] as const;
 type ValidBrand = (typeof VALID_BRANDS)[number];

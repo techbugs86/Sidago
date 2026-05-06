@@ -53,7 +53,10 @@ export async function GET(request: Request) {
 
   if (!VALID_BRANDS.includes(brand as ValidBrand)) {
     return NextResponse.json(
-      { ok: false, error: `Invalid brand. Use one of: ${VALID_BRANDS.join(", ")}` },
+      {
+        ok: false,
+        error: `Invalid brand. Use one of: ${VALID_BRANDS.join(", ")}`,
+      },
       { status: 400 },
     );
   }

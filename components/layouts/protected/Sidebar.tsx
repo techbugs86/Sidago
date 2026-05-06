@@ -7,7 +7,7 @@ import { SidebarItem } from "./SidebarItem";
 import { Button } from "@/components/ui";
 import { NavigationItem } from "@/lib/navigation";
 import { useAuth } from "@/providers/AuthProvider";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { SidebarRoleBadge } from "./SidebarRoleBadge";
 import clsx from "clsx";
 
@@ -35,6 +35,7 @@ export const Sidebar = ({
 }: Props) => {
   const { user } = useAuth();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [isResizing, setIsResizing] = useState(false);
   const currentWidth = isCollapsed ? COLLAPSED_WIDTH : sidebarWidth;
 
@@ -78,10 +79,12 @@ export const Sidebar = ({
     >
       <div className="relative flex items-center justify-between overflow-hidden p-4">
         <div className="flex items-center gap-3 min-w-0">
-          <div className={clsx(
-            "bg-indigo-600 p-1.5 rounded text-white shrink-0",
-            isCollapsed ? "opacity-0" : "opacity-100"
-          )}>
+          <div
+            className={clsx(
+              "bg-indigo-600 p-1.5 rounded text-white shrink-0",
+              isCollapsed ? "opacity-0" : "opacity-100",
+            )}
+          >
             <ShieldCheck size={18} />
           </div>
 
@@ -117,10 +120,11 @@ export const Sidebar = ({
       <nav className="mb-10 mt-4 flex-1 overflow-y-auto overflow-x-visible px-3">
         {navigations.map((item) => (
           <SidebarItem
-            key={item.href}
+            key={item.href ?? item.label}
             item={item}
             isCollapsed={isCollapsed}
-            isActive={pathname === item.href}
+            currentPath={pathname}
+            currentSearch={searchParams.toString()}
           />
         ))}
       </nav>

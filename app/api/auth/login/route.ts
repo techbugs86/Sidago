@@ -70,9 +70,7 @@ export async function POST(req: Request) {
     if (user.lockedUntil && new Date(user.lockedUntil) > new Date()) {
       const minutesLeft = Math.max(
         1,
-        Math.ceil(
-          (new Date(user.lockedUntil).getTime() - Date.now()) / 60000,
-        ),
+        Math.ceil((new Date(user.lockedUntil).getTime() - Date.now()) / 60000),
       );
       return NextResponse.json(
         {
@@ -92,7 +90,7 @@ export async function POST(req: Request) {
           ? new Date(
               Date.now() + LOCK_DURATION_MINUTES * 60 * 1000,
             ).toISOString()
-          : user.lockedUntil ?? null;
+          : (user.lockedUntil ?? null);
 
       await db.transaction(async (tx) => {
         await tx.execute(sql`SET LOCAL app.actor_type = 'system'`);

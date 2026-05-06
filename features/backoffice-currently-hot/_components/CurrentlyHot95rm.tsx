@@ -9,7 +9,7 @@ export function CurrentlyHot95rm() {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-[200px] items-center justify-center text-sm text-gray-500">
+      <div className="flex min-h-50 items-center justify-center text-sm text-gray-500">
         Loading currently hot leads…
       </div>
     );
@@ -17,7 +17,7 @@ export function CurrentlyHot95rm() {
 
   if (isError) {
     return (
-      <div className="flex min-h-[200px] items-center justify-center text-sm text-red-500">
+      <div className="flex min-h-50 items-center justify-center text-sm text-red-500">
         Failed to load: {error instanceof Error ? error.message : String(error)}
       </div>
     );

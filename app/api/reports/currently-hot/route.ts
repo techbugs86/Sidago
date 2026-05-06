@@ -13,7 +13,13 @@ import { NextResponse } from "next/server";
 import { alias } from "drizzle-orm/pg-core";
 import { and, eq } from "drizzle-orm";
 import { db } from "@/lib/db";
-import { brands, companies, leadBrandState, leads, users } from "@/lib/db/schema";
+import {
+  brands,
+  companies,
+  leadBrandState,
+  leads,
+  users,
+} from "@/lib/db/schema";
 
 const VALID_BRANDS = ["svg", "95rm", "benton"] as const;
 type ValidBrand = (typeof VALID_BRANDS)[number];
@@ -29,7 +35,10 @@ export async function GET(request: Request) {
 
   if (!VALID_BRANDS.includes(brand as ValidBrand)) {
     return NextResponse.json(
-      { ok: false, error: `Invalid brand. Use one of: ${VALID_BRANDS.join(", ")}` },
+      {
+        ok: false,
+        error: `Invalid brand. Use one of: ${VALID_BRANDS.join(", ")}`,
+      },
       { status: 400 },
     );
   }
@@ -109,17 +118,26 @@ export async function GET(request: Request) {
       .leftJoin(bentonBrand, eq(bentonBrand.code, "benton"))
       .leftJoin(
         bentonState,
-        and(eq(bentonState.leadId, leads.id), eq(bentonState.brandId, bentonBrand.id)),
+        and(
+          eq(bentonState.leadId, leads.id),
+          eq(bentonState.brandId, bentonBrand.id),
+        ),
       )
       // 95RM state
       .leftJoin(rm95Brand, eq(rm95Brand.code, "95rm"))
       .leftJoin(
         rm95State,
-        and(eq(rm95State.leadId, leads.id), eq(rm95State.brandId, rm95Brand.id)),
+        and(
+          eq(rm95State.leadId, leads.id),
+          eq(rm95State.brandId, rm95Brand.id),
+        ),
       )
       // Assignee name lookups
       .leftJoin(svgCaller, eq(svgCaller.id, svgState.toBeCalledByUserId))
-      .leftJoin(bentonCaller, eq(bentonCaller.id, bentonState.toBeCalledByUserId))
+      .leftJoin(
+        bentonCaller,
+        eq(bentonCaller.id, bentonState.toBeCalledByUserId),
+      )
       .leftJoin(rm95Caller, eq(rm95Caller.id, rm95State.toBeCalledByUserId))
       .where(eq(primaryState.leadType, "Hot"));
 
@@ -145,7 +163,11 @@ export async function GET(request: Request) {
       timezone: stripTimezonePrefix(r.companyTimezone ?? r.leadTimezone),
       contactType: r.contactType ?? "",
       svgLeadType: r.svgLeadType ?? "",
-      svgToBeCalledBy: buildName(r.svgCallerName, r.svgCallerFirst, r.svgCallerLast),
+      svgToBeCalledBy: buildName(
+        r.svgCallerName,
+        r.svgCallerFirst,
+        r.svgCallerLast,
+      ),
       svgLastCallDate: r.svgLastCallDate ?? "",
       bentonLeadType: r.bentonLeadType ?? "",
       bentonToBeCalledBy: buildName(
@@ -155,7 +177,11 @@ export async function GET(request: Request) {
       ),
       bentonLastCallDate: r.bentonLastCallDate ?? "",
       rm95LeadType: r.rm95LeadType ?? "",
-      rm95ToBeCalledBy: buildName(r.rm95CallerName, r.rm95CallerFirst, r.rm95CallerLast),
+      rm95ToBeCalledBy: buildName(
+        r.rm95CallerName,
+        r.rm95CallerFirst,
+        r.rm95CallerLast,
+      ),
       rm95LastCallDate: r.rm95LastCallDate ?? "",
       svgDateBecomeHot: r.svgDateBecomeHot ?? "",
       bentonDateBecomeHot: r.bentonDateBecomeHot ?? "",

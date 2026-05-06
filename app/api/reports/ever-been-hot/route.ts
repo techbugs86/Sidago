@@ -55,7 +55,10 @@ export async function GET(request: Request) {
 
   if (!VALID_BRANDS.includes(brand as ValidBrand)) {
     return NextResponse.json(
-      { ok: false, error: `Invalid brand. Use one of: ${VALID_BRANDS.join(", ")}` },
+      {
+        ok: false,
+        error: `Invalid brand. Use one of: ${VALID_BRANDS.join(", ")}`,
+      },
       { status: 400 },
     );
   }
@@ -142,11 +145,17 @@ export async function GET(request: Request) {
           eq(bentonState.brandId, bentonBrand.id),
         ),
       )
-      .leftJoin(bentonCaller, eq(bentonCaller.id, bentonState.toBeCalledByUserId))
+      .leftJoin(
+        bentonCaller,
+        eq(bentonCaller.id, bentonState.toBeCalledByUserId),
+      )
       .leftJoin(rm95Brand, eq(rm95Brand.code, "95rm"))
       .leftJoin(
         rm95State,
-        and(eq(rm95State.leadId, leads.id), eq(rm95State.brandId, rm95Brand.id)),
+        and(
+          eq(rm95State.leadId, leads.id),
+          eq(rm95State.brandId, rm95Brand.id),
+        ),
       )
       .leftJoin(rm95Caller, eq(rm95Caller.id, rm95State.toBeCalledByUserId))
       .where(eq(hotLeadEvents.eventType, "became_hot"));
@@ -163,8 +172,7 @@ export async function GET(request: Request) {
       if (
         row.eventAt &&
         existing.eventAt &&
-        new Date(row.eventAt).getTime() >
-          new Date(existing.eventAt).getTime()
+        new Date(row.eventAt).getTime() > new Date(existing.eventAt).getTime()
       ) {
         dedupMap.set(key, row);
       }
