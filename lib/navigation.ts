@@ -276,7 +276,7 @@ export const adminOnlyNavigation: NavigationItem[] = [
     icon: BarChart2,
     children: [
       {
-        label: "Currently Hot Leads",
+        label: "Currently Hot",
         icon: Flame,
         children: [
           {
@@ -339,7 +339,7 @@ export const adminOnlyNavigation: NavigationItem[] = [
         ],
       },
       {
-        label: "Unassigned Hot Leads",
+        label: "Unassigned Hot",
         icon: Flame,
         children: [
           {

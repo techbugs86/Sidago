@@ -4,7 +4,6 @@ import {
   CompanySymbolBadge,
   DatePickerField,
   Drawer,
-  EditableDrawerFooter,
   Select,
   Textarea,
   TextInput,
@@ -29,7 +28,6 @@ import {
   type LeadPatchBody,
 } from "@/features/backoffice-shared/use-update-lead";
 import { showErrorToast, showSuccessToast } from "@/lib/toast";
-import Revisions from "@/features/backoffice-shared/Revisions";
 
 type UnassignedHotLeadsDrawerProps = {
   data: UnassignedHotLeadRow[];
@@ -144,7 +142,6 @@ export function UnassignedHotDrawer({
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [copied, setCopied] = useState(false);
-  const [editModeKey, setEditModeKey] = useState<string | null>(null);
   const [formState, setFormState] = useState<{
     key: string;
     value: EditableDrawerState;
@@ -152,7 +149,6 @@ export function UnassignedHotDrawer({
 
   const row = selectedIndex === null ? null : (data[selectedIndex] ?? null);
   const rowKey = row?.email ?? "";
-  const isEditMode = rowKey !== "" && editModeKey === rowKey;
   const initialForm = useMemo(
     () => (row ? getEditableState(row) : null),
     [row],
@@ -252,11 +248,6 @@ export function UnassignedHotDrawer({
     setFormState(null);
   };
 
-  const handleEditStart = () => {
-    if (!rowKey) return;
-    setEditModeKey(rowKey);
-  };
-
   const handleSave = async () => {
     if (!row || !form || !initialForm) return;
 
@@ -326,7 +317,6 @@ export function UnassignedHotDrawer({
       await updateLead.mutateAsync({ leadId: row.leadId, body });
       showSuccessToast("Lead updated");
       setFormState(null);
-      setEditModeKey(null);
     } catch (err) {
       showErrorToast(err);
     }
@@ -441,24 +431,27 @@ export function UnassignedHotDrawer({
         </div>
       }
       footer={
-        isEditMode ? (
-          <EditableDrawerFooter
-            onCancel={() => {
-              setEditModeKey(null);
-              onClose();
-            }}
-            onReset={handleReset}
-            onSave={handleSave}
-            saveDisabled={!isDirty || updateLead.isPending || !row?.leadId}
-            resetDisabled={!isDirty || updateLead.isPending}
-            saveLabel={updateLead.isPending ? "Saving..." : "Save"}
-          />
-        ) : (
-          <Revisions />
-        )
+        <div className="flex items-center justify-end gap-2">
+          <button
+            type="button"
+            onClick={handleReset}
+            disabled={!isDirty || updateLead.isPending}
+            className="cursor-pointer rounded border border-slate-300 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-40 dark:border-slate-600 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+          >
+            Discard
+          </button>
+          <button
+            type="button"
+            onClick={handleSave}
+            disabled={!isDirty || updateLead.isPending || !row?.leadId}
+            className="cursor-pointer rounded bg-indigo-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-indigo-700 disabled:cursor-not-allowed disabled:opacity-40"
+          >
+            {updateLead.isPending ? "Saving..." : "Save"}
+          </button>
+        </div>
       }
     >
-      <div className="space-y-5" onFocus={handleEditStart}>
+      <div className="space-y-5">
         <DetailCard>
           <div className="flex items-center justify-between gap-4">
             <div className="flex min-w-0 flex-1 items-center gap-3">
